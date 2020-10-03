@@ -17,6 +17,8 @@
 mono_crash.*
 
 # Build results
+.DS_Store
+DerivedData/
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
