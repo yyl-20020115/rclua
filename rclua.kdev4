@@ -1,4 +1,4 @@
 [Project]
 CreatedFrom=Makefile
 Manager=KDevCustomMakeManager
-Name=lua-5.4.0
+Name=rclua
