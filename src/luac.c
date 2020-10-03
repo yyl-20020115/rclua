@@ -193,8 +193,11 @@ static int pmain(lua_State* L)
  }
  return 0;
 }
-
+#ifdef LUA_MULTIPLE_PROGRAMS
+int main(int argc, char* argv[])
+#else
 int c_main(int argc, char* argv[])
+#endif
 {
  lua_State* L;
  int i=doargs(argc,argv);

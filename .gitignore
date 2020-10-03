@@ -17,6 +17,9 @@
 mono_crash.*
 
 # Build results
+lua
+luac
+
 Build/
 .DS_Store
 DerivedData/
@@ -74,6 +77,7 @@ StyleCopReport.xml
 *.ilk
 *.meta
 *.o
+*.a
 *.obj
 *.iobj
 *.pch
