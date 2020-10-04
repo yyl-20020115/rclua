@@ -130,9 +130,11 @@
 
 /* ISO C definitions */
 #define LUA_TMPNAMBUFSIZE	L_tmpnam
-/*#define lua_tmpnam(b,e)        { e = (tmpnam(b) == NULL); }*/
+#ifdef __APPLE__
 #define lua_tmpnam(b,e)        { e = (mkstemp(b) == -1); }
-
+#else
+#define lua_tmpnam(b,e)        { e = (tmpnam(b) == NULL); }
+#endif
 #endif				/* } */
 
 #endif				/* } */
