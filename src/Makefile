@@ -217,7 +217,7 @@ lvm.o: lvm.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
  ltable.h lvm.h ljumptab.h
 lzio.o: lzio.c lprefix.h lua.h luaconf.h llimits.h lmem.h lstate.h \
  lobject.h ltm.h lzio.h
-lrc.o: c_lib.h c_map.h c_set.h c_array.h lobject.h lstate.h ltable.h
+lrc.o: lrc.h c_lib.h c_map.h c_set.h c_array.h lobject.h lstate.h ltable.h
 c_util.o: c_lib.h
 c_set.o: c_lib.h c_rb.h
 c_rb.o: c_lib.h c_rb.h

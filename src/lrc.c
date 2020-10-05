@@ -1,13 +1,27 @@
 #include "c_lib.h"
 #include "c_map.h"
 #include "c_set.h"
-
 #include "c_array.h"
+
 #include "lobject.h"
 #include "lstate.h"
 #include "ltable.h"
+#include "lrc.h"
+
+static lua_State *main_lua_State = 0;
+
+int luaRC_set_main_lua_State(lua_State* lua_State)
+{
+    main_lua_State = lua_State;
+    return 0;
+}
+lua_State* luaRC_get_main_lua_State()
+{
+    return main_lua_State;
+}
+
 /*inline*/ 
-int luaC_should_do_rc(lu_byte tt) {
+int luaRC_should_do_rc(lu_byte tt) {
     switch (tt & 0x0f) {
     case LUA_TSTRING:
     case LUA_TTABLE:
@@ -24,44 +38,44 @@ int luaC_should_do_rc(lu_byte tt) {
     }
 }
 
-int luaC_process_unlink_object(lua_State* L, GCObject* o, struct cstl_array* dup_array, struct cstl_set* collecting);
-int luaC_process_unlink_upval(lua_State* L, UpVal* uv, struct cstl_array* dup_array, struct cstl_set* collecting);
+int luaRC_process_unlink_object(lua_State* L, GCObject* o, struct cstl_array* dup_array, struct cstl_set* collecting);
+int luaRC_process_unlink_upval(lua_State* L, UpVal* uv, struct cstl_array* dup_array, struct cstl_set* collecting);
 
 extern void freeobj(lua_State* L, GCObject* o);
 
 static struct cstl_map* map = 0;
 
-void luaC_set_destroy(void* value) {
+void luaRC_set_destroy(void* value) {
     //
 }
-int luaC_set_compare(const void* a, const void* b)
+int luaRC_set_compare(const void* a, const void* b)
 {
     return (int)(((char*)a) - ((char*)b));
 }
 
-void luaC_map_destroy_key(void* key) {
+void luaRC_map_destroy_key(void* key) {
     //
 }
-void luaC_map_destroy_value(void* value) {
+void luaRC_map_destroy_value(void* value) {
     //
 }
-int luaC_map_compare(const void* a, const void* b)
+int luaRC_map_compare(const void* a, const void* b)
 {
     return (int)(((char*)a) - ((char*)b));
 }
 
-void luaC_ensure_init_rc() {
+void luaRC_ensure_init() {
     if (map == 0)
     {
-        map = cstl_map_new(luaC_map_compare, luaC_map_destroy_key, luaC_map_destroy_value);
+        map = cstl_map_new(luaRC_map_compare, luaRC_map_destroy_key, luaRC_map_destroy_value);
     }
 }
 
 
-int luaC_relref_internal(lua_State* L, GCObject* o)
+int luaRC_relref_internal(lua_State* L, GCObject* o)
 {
     int c = 0;
-    luaC_ensure_init_rc();
+    luaRC_ensure_init();
     if (cstl_map_exists(map, o)) {
         c = (int)cstl_map_find(map, o);
         c = c >= 0 ? c : 0;
@@ -78,7 +92,7 @@ int luaC_relref_internal(lua_State* L, GCObject* o)
     return c;
 }
 void luaC_process_unlink_gc(lua_State* L, GCObject* gc, struct cstl_array* dup_array, struct cstl_set* collecting) {
-    if (gc != 0 && 0 == luaC_relref_internal(L, gc))
+    if (gc != 0 && 0 == luaRC_relref_internal(L, gc))
     {
         if (!cstl_set_exists(collecting, (void*)gc)) {
             cstl_array_push_back(dup_array, (void*)gc, sizeof(gc));
@@ -86,20 +100,20 @@ void luaC_process_unlink_gc(lua_State* L, GCObject* gc, struct cstl_array* dup_a
     }
 }
 
-int luaC_process_unlink_string(lua_State* L, TString* s, struct cstl_array* dup_array, struct cstl_set* collecting) {
+int luaRC_process_unlink_string(lua_State* L, TString* s, struct cstl_array* dup_array, struct cstl_set* collecting) {
     int mc = 0;
     if (s != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, (void*)s, sizeof(s))) {
         mc = 1;
     }
     return mc;
 }
-int luaC_process_unlink_udata(lua_State* L, Udata* u, struct cstl_array* dup_array, struct cstl_set* collecting) {
+int luaRC_process_unlink_udata(lua_State* L, Udata* u, struct cstl_array* dup_array, struct cstl_set* collecting) {
     int mc = 0;
     if (u != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, (void*)u, sizeof(u))) {
         mc = 1;
         for (int i = 0; i < u->nuvalue; i++) {
             UValue* pv = (u->uv + i);
-            if (luaC_should_do_rc(pv->uv.tt_)) {
+            if (luaRC_should_do_rc(pv->uv.tt_)) {
                 pv->uv.tt_ = LUA_TNIL;
                 luaC_process_unlink_gc(L, (GCObject*)pv, dup_array, collecting);
             }
@@ -118,7 +132,7 @@ int luaC_process_unlink_udata(lua_State* L, Udata* u, struct cstl_array* dup_arr
 extern unsigned int luaH_realasize(const Table* t);
 #define gnodelast(h)	gnode(h, cast_sizet(sizenode(h)))
 
-int luaC_process_unlink_table(lua_State* L, Table* t, struct cstl_array* dup_array, struct cstl_set* collecting) {
+int luaRC_process_unlink_table(lua_State* L, Table* t, struct cstl_array* dup_array, struct cstl_set* collecting) {
     int mc = 0;
     if (t != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, (void*)t, sizeof(t))) {
         mc = 1;
@@ -126,11 +140,11 @@ int luaC_process_unlink_table(lua_State* L, Table* t, struct cstl_array* dup_arr
         Node* limit = gnodelast(t);
 
         for (Node* n = gnode(t, 0); n < limit; n++) {
-            if (luaC_should_do_rc(n->u.key_tt)) {
+            if (luaRC_should_do_rc(n->u.key_tt)) {
                 n->u.key_tt = LUA_TNIL;
                 luaC_process_unlink_gc(L, n->u.key_val.gc, dup_array, collecting);
             }
-            if (luaC_should_do_rc(n->i_val.tt_)) {
+            if (luaRC_should_do_rc(n->i_val.tt_)) {
                 n->i_val.tt_ = LUA_TNIL;
                 luaC_process_unlink_gc(L, n->i_val.value_.gc, dup_array, collecting);
             }
@@ -139,7 +153,7 @@ int luaC_process_unlink_table(lua_State* L, Table* t, struct cstl_array* dup_arr
         int array_size = luaH_realasize(t);
         for (int i = 0; i < array_size; i++) {
             TValue* tv = t->array + i;
-            if (luaC_should_do_rc(tv->tt_)) {
+            if (luaRC_should_do_rc(tv->tt_)) {
                 tv->tt_ = LUA_TNIL;
                 luaC_process_unlink_gc(L, tv->value_.gc, dup_array, collecting);
             }
@@ -152,14 +166,14 @@ int luaC_process_unlink_table(lua_State* L, Table* t, struct cstl_array* dup_arr
     return mc;
 
 }
-int luaC_process_unlink_thread(lua_State* L, lua_State* t, struct cstl_array* dup_array, struct cstl_set* collecting) {
+int luaRC_process_unlink_thread(lua_State* L, lua_State* t, struct cstl_array* dup_array, struct cstl_set* collecting) {
     int mc = 0;
     if (t != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, (void*)t, sizeof(t))) {
         mc = 1;
         //stack
         for (int i = 0; i < t->stacksize; i++) {
             StkId sid = t->stack + i;
-            if (luaC_should_do_rc(sid->val.tt_)) {
+            if (luaRC_should_do_rc(sid->val.tt_)) {
                 //unlink stack members!
                 luaC_process_unlink_gc(L, sid->val.value_.gc, dup_array, collecting);
             }
@@ -168,7 +182,7 @@ int luaC_process_unlink_thread(lua_State* L, lua_State* t, struct cstl_array* du
         if (t->openupval != 0) {
             for (UpVal* uv = t->openupval; uv != 0; uv = uv->u.open.next)
             {
-                mc += luaC_process_unlink_upval(L, uv, dup_array, collecting);
+                mc += luaRC_process_unlink_upval(L, uv, dup_array, collecting);
             }
             t->openupval = 0;
         }
@@ -177,7 +191,7 @@ int luaC_process_unlink_thread(lua_State* L, lua_State* t, struct cstl_array* du
     return mc;
 
 }
-int luaC_process_unlink_proto(lua_State* L, Proto* p, struct cstl_array* dup_array, struct cstl_set* collecting) {
+int luaRC_process_unlink_proto(lua_State* L, Proto* p, struct cstl_array* dup_array, struct cstl_set* collecting) {
     int mc = 0;
     if (p != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, (void*)p, sizeof(p))) {
         mc = 1;
@@ -189,7 +203,7 @@ int luaC_process_unlink_proto(lua_State* L, Proto* p, struct cstl_array* dup_arr
         if (p->k != 0) {
             for (int i = 0; i < p->sizek; i++) {
                 TValue* tv = (p->k + i);
-                if (tv != 0 && luaC_should_do_rc(tv->tt_)) {
+                if (tv != 0 && luaRC_should_do_rc(tv->tt_)) {
                     tv->tt_ = LUA_TNIL;
                     luaC_process_unlink_gc(L, tv->value_.gc, dup_array, collecting);
                 }
@@ -203,7 +217,7 @@ int luaC_process_unlink_proto(lua_State* L, Proto* p, struct cstl_array* dup_arr
 
 }
 
-int luaC_process_unlink_upval(lua_State* L, UpVal* uv, struct cstl_array* dup_array, struct cstl_set* collecting) {
+int luaRC_process_unlink_upval(lua_State* L, UpVal* uv, struct cstl_array* dup_array, struct cstl_set* collecting) {
     int mc = 0;
     if (uv != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, (void*)uv, sizeof(uv))) {
         mc = 1;
@@ -211,14 +225,14 @@ int luaC_process_unlink_upval(lua_State* L, UpVal* uv, struct cstl_array* dup_ar
         //if closed, value is uv->u.value;
         TValue* v = uv->tbc ? uv->v : &uv->u.value;
 
-        if (luaC_should_do_rc(v->tt_)) {
+        if (luaRC_should_do_rc(v->tt_)) {
             v->tt_ = LUA_TNIL;
             luaC_process_unlink_gc(L, v->value_.gc, dup_array, collecting);
         }
     }
     return mc;
 }
-int luaC_process_unlink_lcl(lua_State* L, LClosure* lcl, struct cstl_array* dup_array, struct cstl_set* collecting) 
+int luaRC_process_unlink_lcl(lua_State* L, LClosure* lcl, struct cstl_array* dup_array, struct cstl_set* collecting) 
 {
     int mc = 0;
     if (lcl != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, (void*)lcl, sizeof(lcl)))
@@ -229,7 +243,7 @@ int luaC_process_unlink_lcl(lua_State* L, LClosure* lcl, struct cstl_array* dup_
         }
         for (int i = 0; i < lcl->nupvalues; i++) {
             UpVal* uv = lcl->upvals[i];
-            if (luaC_should_do_rc(uv->tt)) {
+            if (luaRC_should_do_rc(uv->tt)) {
                 uv->tt = LUA_TNIL;
                 luaC_process_unlink_gc(L, uv->v->value_.gc, dup_array, collecting);
             }
@@ -239,7 +253,7 @@ int luaC_process_unlink_lcl(lua_State* L, LClosure* lcl, struct cstl_array* dup_
     return mc;
 
 }
-int luaC_process_unlink_ccl(lua_State* L, CClosure* ccl, struct cstl_array* dup_array, struct cstl_set* collecting)
+int luaRC_process_unlink_ccl(lua_State* L, CClosure* ccl, struct cstl_array* dup_array, struct cstl_set* collecting)
 {
     int mc = 0;
     if (ccl != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, (void*)ccl, sizeof(ccl)))
@@ -247,7 +261,7 @@ int luaC_process_unlink_ccl(lua_State* L, CClosure* ccl, struct cstl_array* dup_
         mc = 1;
         for (int i = 0; i < ccl->nupvalues;i++) {
             TValue* tv = &ccl->upvalue[i];
-            if (luaC_should_do_rc(tv->tt_)) {
+            if (luaRC_should_do_rc(tv->tt_)) {
                 luaC_process_unlink_gc(L, tv->value_.gc, dup_array, collecting);
             }
         }
@@ -256,47 +270,47 @@ int luaC_process_unlink_ccl(lua_State* L, CClosure* ccl, struct cstl_array* dup_
     return mc;
 }
 
-int luaC_process_unlink_object(lua_State* L, GCObject* o, struct cstl_array* dup_array, struct cstl_set* collecting)
+int luaRC_process_unlink_object(lua_State* L, GCObject* o, struct cstl_array* dup_array, struct cstl_set* collecting)
 {
     int mc = 0;
 
-    if (o != 0 && luaC_should_do_rc(o->tt))
+    if (o != 0 && luaRC_should_do_rc(o->tt))
     {
         switch (o->tt & 0x0f) {
         case LUA_TSTRING:
         {
             //free string object directly
-            mc += luaC_process_unlink_string(L, (TString*)o, dup_array, collecting);
+            mc += luaRC_process_unlink_string(L, (TString*)o, dup_array, collecting);
         }
         break;
         case LUA_TUSERDATA:
         {
             //free user data in depth
-            mc += luaC_process_unlink_udata(L, (Udata*)o, dup_array, collecting);
+            mc += luaRC_process_unlink_udata(L, (Udata*)o, dup_array, collecting);
         }
         break;
         case LUA_TUPVAL:
         {
             //free upvalue in depth
-            mc += luaC_process_unlink_upval(L, (UpVal*)o, dup_array, collecting);
+            mc += luaRC_process_unlink_upval(L, (UpVal*)o, dup_array, collecting);
         }
         break;
         case LUA_TTABLE:
         {
             //free table
-            mc += luaC_process_unlink_table(L, (Table*)o, dup_array, collecting);
+            mc += luaRC_process_unlink_table(L, (Table*)o, dup_array, collecting);
         }
         break;
         case LUA_TTHREAD:
         {
             //free thread
-            mc += luaC_process_unlink_thread(L, (lua_State*)o, dup_array, collecting);
+            mc += luaRC_process_unlink_thread(L, (lua_State*)o, dup_array, collecting);
         }
         break;
         case LUA_TPROTO:
         {
             //free proto
-            mc += luaC_process_unlink_proto(L, (Proto*)o, dup_array, collecting);
+            mc += luaRC_process_unlink_proto(L, (Proto*)o, dup_array, collecting);
         }
         break;
         case LUA_TFUNCTION:
@@ -304,12 +318,12 @@ int luaC_process_unlink_object(lua_State* L, GCObject* o, struct cstl_array* dup
             //lua closure
             if (o->tt == LUA_VLCL)
             {
-                mc += luaC_process_unlink_lcl(L, (LClosure*)o, dup_array, collecting);
+                mc += luaRC_process_unlink_lcl(L, (LClosure*)o, dup_array, collecting);
             }
             //C closure
             else if (o->tt == LUA_VCCL)
             {
-                mc += luaC_process_unlink_ccl(L, (CClosure*)o, dup_array, collecting);
+                mc += luaRC_process_unlink_ccl(L, (CClosure*)o, dup_array, collecting);
             }
         }
         break;
@@ -318,12 +332,12 @@ int luaC_process_unlink_object(lua_State* L, GCObject* o, struct cstl_array* dup
     return mc;
 }
 
-int luaC_process_unlink_step(lua_State* L, struct cstl_iterator* i,struct cstl_array* dup_array, struct cstl_set* collecting)
+int luaRC_process_unlink_step(lua_State* L, struct cstl_iterator* i,struct cstl_array* dup_array, struct cstl_set* collecting)
 {
-    return i != 0 ? luaC_process_unlink_object(L, (GCObject*)(i->current_element), dup_array, collecting) : 0 ;
+    return i != 0 ? luaRC_process_unlink_object(L, (GCObject*)(i->current_element), dup_array, collecting) : 0 ;
 }
 
-int luaC_process_unlink(lua_State* L, GCObject* m, struct cstl_set* collecting)
+int luaRC_process_unlink(lua_State* L, GCObject* m, struct cstl_set* collecting)
 {
     int nc = 0;
     //when we are here: o.rc == 0
@@ -346,7 +360,7 @@ int luaC_process_unlink(lua_State* L, GCObject* m, struct cstl_set* collecting)
 
                     while (i->next(i) != 0)
                     {
-                        mc += luaC_process_unlink_step(L, i, dup_array, collecting);
+                        mc += luaRC_process_unlink_step(L, i, dup_array, collecting);
                     }
                     cstl_array_delete_iterator(i);
                     cstl_array_delete(rcs_array);
@@ -369,9 +383,9 @@ int luaC_process_unlink(lua_State* L, GCObject* m, struct cstl_set* collecting)
     return nc;
 }
 
-int luaC_addref(lua_State* L, GCObject* o)
+int luaRC_addref(lua_State* L, GCObject* o)
 {
-    luaC_ensure_init_rc();
+    luaRC_ensure_init();
     int c = 0;
     
     if (cstl_map_exists(map, o)) {
@@ -387,7 +401,7 @@ int luaC_addref(lua_State* L, GCObject* o)
     }
     return c;
 }
-int luaC_collect(lua_State* L, struct cstl_set* collecting) {
+int luaRC_collect(lua_State* L, struct cstl_set* collecting) {
 
     if (collecting != 0) {
         struct cstl_iterator* i = cstl_set_new_iterator(collecting);
@@ -403,22 +417,22 @@ int luaC_collect(lua_State* L, struct cstl_set* collecting) {
     }
     return 0;
 }
-int luaC_relref(lua_State* L, GCObject* o)
+int luaRC_relref(lua_State* L, GCObject* o)
 {
     int c = 0;
     if (o != 0)
     {
-        c = luaC_relref_internal(L, o);
+        c = luaRC_relref_internal(L, o);
 
         if (c == 0) 
         {
-            struct cstl_set* collecting = cstl_set_new(luaC_set_compare, luaC_set_destroy);
+            struct cstl_set* collecting = cstl_set_new(luaRC_set_compare, luaRC_set_destroy);
             
             if (collecting != 0) 
             {
-                luaC_process_unlink(L, o, collecting);
+                luaRC_process_unlink(L, o, collecting);
                 //collect everything that has reference count of 0
-                luaC_collect(L, collecting);
+                luaRC_collect(L, collecting);
 
                 cstl_set_delete(collecting);
             }
@@ -426,7 +440,7 @@ int luaC_relref(lua_State* L, GCObject* o)
     }
     return c;
 }
-void luaC_ensure_deinit_rc() {
+void luaRC_ensure_deinit() {
     if (map != 0)
     {
         struct cstl_iterator* i = cstl_map_new_iterator(map);
@@ -442,4 +456,22 @@ void luaC_ensure_deinit_rc() {
         cstl_map_delete(map);
         map = 0;
     }
+}
+//#define settt_(o,t)	((o)->tt_=(t))
+
+int luaRC_settt_(TValue* o, lu_byte t)
+{
+    o->tt_ = (t);
+    if (t == LUA_TNIL) {
+        if (luaRC_should_do_rc(o->tt_)) {
+            //decrease the reference count
+            luaRC_relref(luaRC_get_main_lua_State(), o->value_.gc);
+        }
+        else {
+            //erase this value to 0 directly(treat as void*)
+           ((TValue*)o)->value_.p = 0;
+        }
+    }
+    
+    return 0;
 }
