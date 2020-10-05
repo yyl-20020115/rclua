@@ -8,6 +8,10 @@
 #include "ltable.h"
 #include "lrc.h"
 
+#ifdef _DEBUG
+#include <stdio.h>
+#endif
+
 static lua_State *main_lua_State = 0;
 
 int luaRC_set_main_lua_State(lua_State* lua_State)
@@ -75,7 +79,7 @@ void luaRC_ensure_init() {
 int luaRC_relref_internal(lua_State* L, GCObject* o)
 {
     int c = 0;
-    luaRC_ensure_init();
+    if (map == 0) luaRC_ensure_init();
     if (cstl_map_exists(map, o)) {
         c = (int)cstl_map_find(map, o);
         c = c >= 0 ? c : 0;
@@ -383,26 +387,8 @@ int luaRC_process_unlink(lua_State* L, GCObject* m, struct cstl_set* collecting)
     return nc;
 }
 
-int luaRC_addref(lua_State* L, GCObject* o)
+int luaRC_collect(lua_State* L, struct cstl_set* collecting) 
 {
-    luaRC_ensure_init();
-    int c = 0;
-    
-    if (cstl_map_exists(map, o)) {
-        c = (int)cstl_map_find(map, o);
-        c++;
-        //add one to the ref
-        cstl_map_replace(map, o, (void*)c,sizeof(c));
-    }
-    else 
-    {
-        c++;
-        cstl_map_insert(map, o, sizeof(void*), (void*)c, sizeof(c));
-    }
-    return c;
-}
-int luaRC_collect(lua_State* L, struct cstl_set* collecting) {
-
     if (collecting != 0) {
         struct cstl_iterator* i = cstl_set_new_iterator(collecting);
         if (i != 0) {
@@ -416,6 +402,24 @@ int luaRC_collect(lua_State* L, struct cstl_set* collecting) {
         cstl_set_delete_iterator(i);
     }
     return 0;
+}
+
+int luaRC_addref(lua_State* L, GCObject* o)
+{
+    int c = 0;
+    if (map == 0) luaRC_ensure_init();    
+    if (cstl_map_exists(map, o)) {
+        c = (int)cstl_map_find(map, o);
+        c++;
+        //add one to the ref
+        cstl_map_replace(map, o, (void*)c,sizeof(c));
+    }
+    else 
+    {
+        c++;
+        cstl_map_insert(map, o, sizeof(void*), (void*)c, sizeof(c));
+    }
+    return c;
 }
 int luaRC_relref(lua_State* L, GCObject* o)
 {
@@ -448,6 +452,9 @@ void luaRC_ensure_deinit() {
             while (i->next(i) != 0) {
                 GCObject* o = (GCObject*)i->current_key(i);
                 if (o != 0) {
+#ifdef _DEBUG
+                    printf("(leakage) freeing object: %p\n", o);
+#endif
                     freeobj(0, o);
                 }
             }
@@ -458,18 +465,19 @@ void luaRC_ensure_deinit() {
     }
 }
 //#define settt_(o,t)	((o)->tt_=(t))
-
 int luaRC_settt_(TValue* o, lu_byte t)
 {
+    int rc = 0;
     o->tt_ = (t);
-    if (t == LUA_TNIL) {
-        if (luaRC_should_do_rc(o->tt_)) {
+    if (luaRC_should_do_rc(t)) {
+        if (t == LUA_TNIL) {
             //decrease the reference count
-            luaRC_relref(luaRC_get_main_lua_State(), o->value_.gc);
+            rc = luaRC_relref(luaRC_get_main_lua_State(), o->value_.gc);
         }
-        else {
-            //erase this value to 0 directly(treat as void*)
-           ((TValue*)o)->value_.p = 0;
+        else 
+        {
+            //increase the reference count
+            rc = luaRC_addref(luaRC_get_main_lua_State(), o->value_.gc);
         }
     }
     

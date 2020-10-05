@@ -5,6 +5,69 @@ VisualStudioVersion = 16.0.30517.126
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rclua", "rclua.vcxproj", "{EA49AB5F-0012-4F6A-B768-8C1AD5A17434}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{198F18CB-7951-4B7D-9D77-36D9C91F75F6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "original", "original", "{D5157FE3-72DD-426F-8BDC-7495ACB5160F}"
+	ProjectSection(SolutionItems) = preProject
+		test\original\bisect.lua = test\original\bisect.lua
+		test\original\cf.lua = test\original\cf.lua
+		test\original\echo.lua = test\original\echo.lua
+		test\original\env.lua = test\original\env.lua
+		test\original\factorial.lua = test\original\factorial.lua
+		test\original\fib.lua = test\original\fib.lua
+		test\original\fibfor.lua = test\original\fibfor.lua
+		test\original\globals.lua = test\original\globals.lua
+		test\original\hello.lua = test\original\hello.lua
+		test\original\life.lua = test\original\life.lua
+		test\original\luac.lua = test\original\luac.lua
+		test\original\printf.lua = test\original\printf.lua
+		test\original\README = test\original\README
+		test\original\readonly.lua = test\original\readonly.lua
+		test\original\sieve.lua = test\original\sieve.lua
+		test\original\sort.lua = test\original\sort.lua
+		test\original\table.lua = test\original\table.lua
+		test\original\trace-calls.lua = test\original\trace-calls.lua
+		test\original\trace-globals.lua = test\original\trace-globals.lua
+		test\original\xd.lua = test\original\xd.lua
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "specific", "specific", "{166B0769-5545-4D30-A154-E3480B1B5400}"
+	ProjectSection(SolutionItems) = preProject
+		test\specific\all.lua = test\specific\all.lua
+		test\specific\api.lua = test\specific\api.lua
+		test\specific\attrib.lua = test\specific\attrib.lua
+		test\specific\big.lua = test\specific\big.lua
+		test\specific\bitwise.lua = test\specific\bitwise.lua
+		test\specific\bwcoercion.lua = test\specific\bwcoercion.lua
+		test\specific\calls.lua = test\specific\calls.lua
+		test\specific\closure.lua = test\specific\closure.lua
+		test\specific\code.lua = test\specific\code.lua
+		test\specific\constructs.lua = test\specific\constructs.lua
+		test\specific\coroutine.lua = test\specific\coroutine.lua
+		test\specific\cstack.lua = test\specific\cstack.lua
+		test\specific\db.lua = test\specific\db.lua
+		test\specific\errors.lua = test\specific\errors.lua
+		test\specific\events.lua = test\specific\events.lua
+		test\specific\files.lua = test\specific\files.lua
+		test\specific\gc.lua = test\specific\gc.lua
+		test\specific\gengc.lua = test\specific\gengc.lua
+		test\specific\goto.lua = test\specific\goto.lua
+		test\specific\heavy.lua = test\specific\heavy.lua
+		test\specific\literals.lua = test\specific\literals.lua
+		test\specific\locals.lua = test\specific\locals.lua
+		test\specific\main.lua = test\specific\main.lua
+		test\specific\math.lua = test\specific\math.lua
+		test\specific\nextvar.lua = test\specific\nextvar.lua
+		test\specific\packtests = test\specific\packtests
+		test\specific\pm.lua = test\specific\pm.lua
+		test\specific\sort.lua = test\specific\sort.lua
+		test\specific\strings.lua = test\specific\strings.lua
+		test\specific\tpack.lua = test\specific\tpack.lua
+		test\specific\utf8.lua = test\specific\utf8.lua
+		test\specific\vararg.lua = test\specific\vararg.lua
+		test\specific\verybig.lua = test\specific\verybig.lua
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -24,6 +87,10 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D5157FE3-72DD-426F-8BDC-7495ACB5160F} = {198F18CB-7951-4B7D-9D77-36D9C91F75F6}
+		{166B0769-5545-4D30-A154-E3480B1B5400} = {198F18CB-7951-4B7D-9D77-36D9C91F75F6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F50543E9-9ACC-4410-ADFA-65899F539FA0}
