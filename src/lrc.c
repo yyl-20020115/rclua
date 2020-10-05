@@ -69,22 +69,14 @@ int luaRC_set_compare(const void* a, const void* b)
     return (int)(((char*)a) - ((char*)b));
 }
 
-void luaRC_map_destroy_key(void* key) {
-    //
-}
-void luaRC_map_destroy_value(void* value) {
-    //
-}
 int luaRC_map_compare(const void* a, const void* b)
 {
     return (int)(((char*)a) - ((char*)b));
 }
 
-void luaRC_ensure_init() {
-    if (map == 0)
-    {
-        map = cstl_map_new(luaRC_map_compare, luaRC_map_destroy_key, luaRC_map_destroy_value);
-    }
+void luaRC_ensure_init()
+{
+    map = (map != 0) ? map : cstl_map_new(luaRC_map_compare, 0, 0);
 }
 
 
@@ -98,12 +90,10 @@ int luaRC_relref_internal(lua_State* L, GCObject* o)
             c = *(int*)cstl_map_find(map, o);
             c = c >= 0 ? c : 0;
             if (c == 0) {
-                //put into remove list
                 cstl_map_remove(map, (void*)o);
             }
             else {
                 c--;
-                //sub one to the ref
                 cstl_map_replace(map, o, &c, sizeof(c));
             }
         }
@@ -461,7 +451,8 @@ int luaRC_relref(lua_State* L, GCObject* o)
     }
     return c;
 }
-void luaRC_ensure_deinit() {
+void luaRC_ensure_deinit() 
+{
     if (map != 0)
     {
         struct cstl_iterator* i = cstl_map_new_iterator(map);
@@ -494,7 +485,8 @@ int luaRC_settt_(TValue* o, lu_byte t)
     }
     if (enable_rc != 0 && o != 0) 
     {
-        if (luaRC_should_do_rc(t)) {
+        if (luaRC_should_do_rc(t)) 
+        {
             if (t == LUA_TNIL) 
             {
                 rc = luaRC_relref(luaRC_get_main_lua_State(), o->value_.gc);

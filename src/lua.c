@@ -626,8 +626,8 @@ int main (int argc, char **argv)
 {
 #ifdef _WIN32
 #ifdef _DEBUG
-    luaC_set_enable_gc(0);
-    luaRC_set_enable_rc(1);
+    luaC_set_enable_gc(1);
+    luaRC_set_enable_rc(0);
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 #endif
