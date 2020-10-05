@@ -26,7 +26,16 @@
 #include "ltable.h"
 #include "ltm.h"
 
+static int enable_gc = 1;
 
+int luaC_set_enable_gc(int enable) 
+{
+    return enable_gc = enable;
+}
+int luaC_get_enable_gc()
+{
+    return enable_gc;
+}
 /*
 ** Maximum number of elements to sweep in each single step.
 ** (Large enough to dissipate fixed overheads but small enough
@@ -237,18 +246,25 @@ void luaC_fix (lua_State *L, GCObject *o) {
 ** create a new collectable object (with given type and size) and link
 ** it to 'allgc' list.
 */
-GCObject *luaC_newobj (lua_State *L, int tt, size_t sz) {
-  global_State *g = G(L);
-  GCObject *o = cast(GCObject *, luaM_newobject(L, novariant(tt), sz));
-  if(o!=NULL)
-  {
-    luaRC_addref(L,o);
-    o->marked = luaC_white(g);
-    o->tt = tt;
-    o->next = g->allgc;
-    g->allgc = o;
-  }
-  return o;
+GCObject* luaC_newobj(lua_State* L, int tt, size_t sz) {
+    global_State* g = G(L);
+    GCObject* o = cast(GCObject*, luaM_newobject(L, novariant(tt), sz));
+    if (o != NULL)
+    {
+        luaRC_addref(L, o);
+        o->marked = luaC_white(g);
+        o->tt = tt;
+        if (enable_gc)
+        {
+            o->next = g->allgc;
+            g->allgc = o;
+        }
+        else
+        {
+            o->next = 0;
+        }
+    }
+    return o;
 }
 
 /* }====================================================== */
