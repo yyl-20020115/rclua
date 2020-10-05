@@ -260,5 +260,8 @@
     <ClInclude Include="src\c_set.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="src\lrc.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

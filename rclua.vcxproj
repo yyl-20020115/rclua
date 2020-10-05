@@ -91,6 +91,7 @@
     <ClInclude Include="src\lopnames.h" />
     <ClInclude Include="src\lparser.h" />
     <ClInclude Include="src\lprefix.h" />
+    <ClInclude Include="src\lrc.h" />
     <ClInclude Include="src\lstate.h" />
     <ClInclude Include="src\lstring.h" />
     <ClInclude Include="src\ltable.h" />
