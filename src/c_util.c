@@ -75,7 +75,9 @@ void
 cstl_object_replace_raw(struct cstl_object* current_object, const void* elem, size_t elem_size) {
     free(current_object->raw_data);
     current_object->raw_data = (void*)calloc(elem_size, sizeof(char));
-    memcpy(current_object->raw_data, elem, elem_size);
+    if (current_object->raw_data != 0) {
+        memcpy(current_object->raw_data, elem, elem_size);
+    }
 }
 
 void

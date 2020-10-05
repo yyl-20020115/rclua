@@ -236,9 +236,11 @@ void luaC_fix (lua_State *L, GCObject *o) {
   lua_assert(g->allgc == o);  /* object must be 1st in 'allgc' list! */
   white2gray(o);  /* they will be gray forever */
   setage(o, G_OLD);  /* and old forever */
-  g->allgc = o->next;  /* remove object from 'allgc' list */
-  o->next = g->fixedgc;  /* link it to 'fixedgc' list */
-  g->fixedgc = o;
+  if (enable_gc) {
+      g->allgc = o->next;  /* remove object from 'allgc' list */
+      o->next = g->fixedgc;  /* link it to 'fixedgc' list */
+      g->fixedgc = o;
+  }
 }
 
 
@@ -966,7 +968,8 @@ void luaC_checkfinalizer (lua_State *L, GCObject *o, Table *mt) {
         g->reallyold = o->next;
     }
     /* search for pointer pointing to 'o' */
-    for (p = &g->allgc; *p != o; p = &(*p)->next) { /* empty */ }
+    for (p = &g->allgc; p!=0 && *p != o; p = &(*p)->next) { /* empty */ }
+    if (p == 0) return;
     *p = o->next;  /* remove 'o' from 'allgc' list */
     o->next = g->finobj;  /* link it in 'finobj' list */
     g->finobj = o;
@@ -1409,7 +1412,7 @@ static void entersweep (lua_State *L) {
 ** 'limit'.
 */
 static void deletelist (lua_State *L, GCObject *p, GCObject *limit) {
-  while (p != limit) {
+  while (p!=0 && p != limit) {
     GCObject *next = p->next;
     freeobj(L, p);
     p = next;

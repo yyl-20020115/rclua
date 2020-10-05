@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rclua", "rclua.vcxproj", "{EA49AB5F-0012-4F6A-B768-8C1AD5A17434}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{198F18CB-7951-4B7D-9D77-36D9C91F75F6}"
+	ProjectSection(SolutionItems) = preProject
+		mytest.lua = mytest.lua
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "original", "original", "{D5157FE3-72DD-426F-8BDC-7495ACB5160F}"
 	ProjectSection(SolutionItems) = preProject

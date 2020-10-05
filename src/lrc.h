@@ -56,4 +56,7 @@ int luaRC_addref(lua_State* L, GCObject* o);
 
 int luaRC_settt_(TValue* o, lu_byte t);
 
+int luaRC_set_enable_rc(int enable);
+int luaRC_get_enable_rc();
+
 #endif

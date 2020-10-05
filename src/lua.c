@@ -1,3 +1,9 @@
+#ifdef _WIN32
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+#endif
+
 /*
 ** $Id: lua.c $
 ** Lua stand-alone interpreter
@@ -5,7 +11,6 @@
 */
 
 #define lua_c
-
 #include "lprefix.h"
 
 
@@ -20,6 +25,7 @@
 #include "lauxlib.h"
 #include "lualib.h"
 #include "lrc.h"
+#include "lgc.h"
 
 #if !defined(LUA_PROGNAME)
 #define LUA_PROGNAME		"lua"
@@ -616,8 +622,16 @@ static int pmain (lua_State *L) {
 }
 
 
-int main (int argc, char **argv) {
-  int status, result;
+int main (int argc, char **argv) 
+{
+#ifdef _WIN32
+#ifdef _DEBUG
+    luaC_set_enable_gc(0);
+    luaRC_set_enable_rc(1);
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
+#endif
+  int status = 0, result = 0;
   lua_State *L = luaL_newstate();  /* create state */
   if (L == NULL) {
     l_message(argv[0], "cannot create state: not enough memory");

@@ -82,8 +82,7 @@
 /* Macros to set values */
 
 /* set a value's tag */
-/* #define settt_(o,t)	((o)->tt_=(t)) */
-#define settt_(o,t)	luaRC_settt_(o,t)
+#define settt_(o,t)	((o)->tt_=(t))
 
 
 /* main macro to copy values (from 'obj1' to 'obj2') */
