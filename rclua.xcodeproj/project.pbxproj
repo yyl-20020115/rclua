@@ -148,6 +148,7 @@
 		FAF532C7252981EF0026B648 /* c_list.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = c_list.h; path = src/c_list.h; sourceTree = SOURCE_ROOT; };
 		FAF532C8252981EF0026B648 /* c_deque.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = c_deque.c; path = src/c_deque.c; sourceTree = SOURCE_ROOT; };
 		FAF532C9252981EF0026B648 /* c_map.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = c_map.h; path = src/c_map.h; sourceTree = SOURCE_ROOT; };
+		FAF532D7252BBAE90026B648 /* lrc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = lrc.h; path = src/lrc.h; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -198,6 +199,7 @@
 				FAF532BA252981EF0026B648 /* c_set.c */,
 				FAF532C4252981EF0026B648 /* c_set.h */,
 				FAF532BD252981EF0026B648 /* c_util.c */,
+				FAF532D7252BBAE90026B648 /* lrc.h */,
 				FAF532BC252981EF0026B648 /* lrc.c */,
 				FAF5327F2528F6E00026B648 /* lapi.c */,
 				FAF532732528F6E00026B648 /* lapi.h */,

@@ -18,7 +18,7 @@ int luaRC_set_enable_rc(int enable)
 {
     return enable_rc = enable;
 }
-int luaRC_get_enable_rc()
+int luaRC_get_enable_rc(void)
 {
     return enable_rc;
 }
@@ -31,7 +31,7 @@ int luaRC_set_main_lua_State(lua_State* lua_State)
     main_lua_State = lua_State;
     return 0;
 }
-lua_State* luaRC_get_main_lua_State()
+lua_State* luaRC_get_main_lua_State(void)
 {
     return main_lua_State;
 }
@@ -451,7 +451,7 @@ int luaRC_relref(lua_State* L, GCObject* o)
     }
     return c;
 }
-void luaRC_ensure_deinit() 
+void luaRC_ensure_deinit(void)
 {
     if (map != 0)
     {

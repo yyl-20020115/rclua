@@ -183,7 +183,7 @@ LUAI_FUNC void luaC_checkfinalizer (lua_State *L, GCObject *o, Table *mt);
 LUAI_FUNC void luaC_changemode (lua_State *L, int newmode);
 
 LUAI_FUNC int luaC_set_enable_gc(int enable);
-LUAI_FUNC int luaC_get_enable_gc();
+LUAI_FUNC int luaC_get_enable_gc(void);
 
 
 

@@ -32,7 +32,7 @@ int luaC_set_enable_gc(int enable)
 {
     return enable_gc = enable;
 }
-int luaC_get_enable_gc()
+int luaC_get_enable_gc(void)
 {
     return enable_gc;
 }
