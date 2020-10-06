@@ -480,18 +480,11 @@ void luaRC_ensure_deinit(void)
             while (i->next(i) != 0) {
                 GCObject* o = *(GCObject**)i->current_key(i);
                 if (o != 0) {
-#ifdef _DEBUG
                     int c = *(int*)i->current_value(i);
-                    printf("(leakage) freeing object: %p, count=%d", o, c);
+                    int d = freeobj(L, o);
+#ifdef _DEBUG
+                    printf("(leakage) freeing object: %p, count=%d, %s\n", o, c, (d?"FREED":"LEAKED"));
 #endif
-                    if (freeobj(L, o))
-                    {
-                        printf(" FREED\n");
-                    }
-                    else
-                    {
-                        printf(" LEAKED\n");
-                    }
                 }
             }
             cstl_map_delete_iterator(i);
