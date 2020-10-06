@@ -19,7 +19,6 @@ mono_crash.*
 # Build results
 lua
 luac
-rclua.xcodeproj/
 Build/
 .DS_Store
 DerivedData/
