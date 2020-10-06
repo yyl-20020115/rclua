@@ -626,8 +626,7 @@ int main (int argc, char **argv)
 {
 #ifdef _WIN32
 #ifdef _DEBUG
-    luaC_set_enable_gc(1);
-    luaRC_set_enable_rc(0);
+    luaC_set_enable_gc(0);
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 #endif
@@ -637,7 +636,6 @@ int main (int argc, char **argv)
     l_message(argv[0], "cannot create state: not enough memory");
     return EXIT_FAILURE;
   }
-  luaRC_set_main_lua_State(L);
   lua_pushcfunction(L, &pmain);  /* to call 'pmain' in protected mode */
   lua_pushinteger(L, argc);  /* 1st argument */
   lua_pushlightuserdata(L, argv); /* 2nd argument */
@@ -645,7 +643,6 @@ int main (int argc, char **argv)
   result = lua_toboolean(L, -1);  /* get result */
   report(L, status);
   lua_close(L);
-  luaRC_ensure_deinit();
   return (result && status == LUA_OK) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

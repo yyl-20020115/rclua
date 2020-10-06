@@ -25,8 +25,9 @@
 #include "lstring.h"
 #include "ltable.h"
 #include "ltm.h"
-
-static int enable_gc = 1;
+#include "lrc.h"
+#include "lrc.h"
+int enable_gc = 1;
 
 int luaC_set_enable_gc(int enable) 
 {
@@ -200,19 +201,21 @@ static int iscleared (global_State *g, const GCObject *o) {
 ** will finally become OLD (regular old).
 */
 void luaC_barrier_ (lua_State *L, GCObject *o, GCObject *v) {
-  global_State *g = G(L);
-  lua_assert(isblack(o) && iswhite(v) && !isdead(g, v) && !isdead(g, o));
-  if (keepinvariant(g)) {  /* must keep invariant? */
-    reallymarkobject(g, v);  /* restore invariant */
-    if (isold(o)) {
-      lua_assert(!isold(v));  /* white object could not be old */
-      setage(v, G_OLD0);  /* restore generational invariant */
+    if (enable_gc) {
+        global_State* g = G(L);
+        lua_assert(isblack(o) && iswhite(v) && !isdead(g, v) && !isdead(g, o));
+        if (keepinvariant(g)) {  /* must keep invariant? */
+            reallymarkobject(g, v);  /* restore invariant */
+            if (isold(o)) {
+                lua_assert(!isold(v));  /* white object could not be old */
+                setage(v, G_OLD0);  /* restore generational invariant */
+            }
+        }
+        else {  /* sweep phase */
+            lua_assert(issweepphase(g));
+            makewhite(g, o);  /* mark main obj. as white to avoid other barriers */
+        }
     }
-  }
-  else {  /* sweep phase */
-    lua_assert(issweepphase(g));
-    makewhite(g, o);  /* mark main obj. as white to avoid other barriers */
-  }
 }
 
 
@@ -221,13 +224,15 @@ void luaC_barrier_ (lua_State *L, GCObject *o, GCObject *v) {
 ** pointing to a white object as gray again.
 */
 void luaC_barrierback_ (lua_State *L, GCObject *o) {
-  global_State *g = G(L);
-  lua_assert(isblack(o) && !isdead(g, o));
-  lua_assert(g->gckind != KGC_GEN || (isold(o) && getage(o) != G_TOUCHED1));
-  if (getage(o) != G_TOUCHED2)  /* not already in gray list? */
-    linkobjgclist(o, g->grayagain);  /* link it in 'grayagain' */
-  black2gray(o);  /* make object gray (again) */
-  setage(o, G_TOUCHED1);  /* touched in current cycle */
+    if (enable_gc) {
+        global_State* g = G(L);
+        lua_assert(isblack(o) && !isdead(g, o));
+        lua_assert(g->gckind != KGC_GEN || (isold(o) && getage(o) != G_TOUCHED1));
+        if (getage(o) != G_TOUCHED2)  /* not already in gray list? */
+            linkobjgclist(o, g->grayagain);  /* link it in 'grayagain' */
+        black2gray(o);  /* make object gray (again) */
+        setage(o, G_TOUCHED1);  /* touched in current cycle */
+    }
 }
 
 
@@ -240,6 +245,10 @@ void luaC_fix (lua_State *L, GCObject *o) {
       g->allgc = o->next;  /* remove object from 'allgc' list */
       o->next = g->fixedgc;  /* link it to 'fixedgc' list */
       g->fixedgc = o;
+  }
+  else
+  {
+      luaRC_fix(L, o);
   }
 }
 
@@ -731,40 +740,51 @@ static void freeupval (lua_State *L, UpVal *uv) {
 
 
 /*static*/ 
-void freeobj (lua_State *L, GCObject *o) {
+int freeobj (lua_State *L, GCObject *o) {
+    int done = 0;
   switch (o->tt) {
     case LUA_VPROTO:
       luaF_freeproto(L, gco2p(o));
+      done = 1;
       break;
     case LUA_VUPVAL:
       freeupval(L, gco2upv(o));
+      done = 1;
       break;
     case LUA_VLCL:
       luaM_freemem(L, o, sizeLclosure(gco2lcl(o)->nupvalues));
+      done = 1;
       break;
     case LUA_VCCL:
       luaM_freemem(L, o, sizeCclosure(gco2ccl(o)->nupvalues));
+      done = 1;
       break;
     case LUA_VTABLE:
       luaH_free(L, gco2t(o));
+      done = 1;
       break;
     case LUA_VTHREAD:
       luaE_freethread(L, gco2th(o));
+      done = 1;
       break;
     case LUA_VUSERDATA: {
       Udata *u = gco2u(o);
       luaM_freemem(L, o, sizeudata(u->nuvalue, u->len));
+      done = 1;
       break;
     }
     case LUA_VSHRSTR:
       luaS_remove(L, gco2ts(o));  /* remove it from hash table */
       luaM_freemem(L, o, sizelstring(gco2ts(o)->shrlen));
+      done = 1;
       break;
     case LUA_VLNGSTR:
       luaM_freemem(L, o, sizelstring(gco2ts(o)->u.lnglen));
+      done = 1;
       break;
     default: lua_assert(0);
   }
+  return done;
 }
 
 
@@ -948,33 +968,35 @@ static void separatetobefnz (global_State *g, int all) {
 ** search the list to find it) and link it in 'finobj' list.
 */
 void luaC_checkfinalizer (lua_State *L, GCObject *o, Table *mt) {
-  global_State *g = G(L);
-  if (tofinalize(o) ||                 /* obj. is already marked... */
-      gfasttm(g, mt, TM_GC) == NULL)   /* or has no finalizer? */
-    return;  /* nothing to be done */
-  else {  /* move 'o' to 'finobj' list */
-    GCObject **p;
-    if (issweepphase(g)) {
-      makewhite(g, o);  /* "sweep" object 'o' */
-      if (g->sweepgc == &o->next)  /* should not remove 'sweepgc' object */
-        g->sweepgc = sweeptolive(L, g->sweepgc);  /* change 'sweepgc' */
+    if (enable_gc) {
+        global_State* g = G(L);
+        if (tofinalize(o) ||                 /* obj. is already marked... */
+            gfasttm(g, mt, TM_GC) == NULL)   /* or has no finalizer? */
+            return;  /* nothing to be done */
+        else {  /* move 'o' to 'finobj' list */
+            GCObject** p;
+            if (issweepphase(g)) {
+                makewhite(g, o);  /* "sweep" object 'o' */
+                if (g->sweepgc == &o->next)  /* should not remove 'sweepgc' object */
+                    g->sweepgc = sweeptolive(L, g->sweepgc);  /* change 'sweepgc' */
+            }
+            else {  /* correct pointers into 'allgc' list, if needed */
+                if (o == g->survival)
+                    g->survival = o->next;
+                if (o == g->old)
+                    g->old = o->next;
+                if (o == g->reallyold)
+                    g->reallyold = o->next;
+            }
+            /* search for pointer pointing to 'o' */
+            for (p = &g->allgc; p != 0 && *p != o; p = &(*p)->next) { /* empty */ }
+            if (p == 0) return;
+            *p = o->next;  /* remove 'o' from 'allgc' list */
+            o->next = g->finobj;  /* link it in 'finobj' list */
+            g->finobj = o;
+            l_setbit(o->marked, FINALIZEDBIT);  /* mark it as such */
+        }
     }
-    else {  /* correct pointers into 'allgc' list, if needed */
-      if (o == g->survival)
-        g->survival = o->next;
-      if (o == g->old)
-        g->old = o->next;
-      if (o == g->reallyold)
-        g->reallyold = o->next;
-    }
-    /* search for pointer pointing to 'o' */
-    for (p = &g->allgc; p!=0 && *p != o; p = &(*p)->next) { /* empty */ }
-    if (p == 0) return;
-    *p = o->next;  /* remove 'o' from 'allgc' list */
-    o->next = g->finobj;  /* link it in 'finobj' list */
-    g->finobj = o;
-    l_setbit(o->marked, FINALIZEDBIT);  /* mark it as such */
-  }
 }
 
 /* }====================================================== */
@@ -1244,15 +1266,17 @@ static void enterinc (global_State *g) {
 /*
 ** Change collector mode to 'newmode'.
 */
-void luaC_changemode (lua_State *L, int newmode) {
-  global_State *g = G(L);
-  if (newmode != g->gckind) {
-    if (newmode == KGC_GEN)  /* entering generational mode? */
-      entergen(L, g);
-    else
-      enterinc(g);  /* entering incremental mode */
-  }
-  g->lastatomic = 0;
+void luaC_changemode(lua_State* L, int newmode) {
+    if (enable_gc) {
+        global_State* g = G(L);
+        if (newmode != g->gckind) {
+            if (newmode == KGC_GEN)  /* entering generational mode? */
+                entergen(L, g);
+            else
+                enterinc(g);  /* entering incremental mode */
+        }
+        g->lastatomic = 0;
+    }
 }
 
 
@@ -1425,15 +1449,17 @@ static void deletelist (lua_State *L, GCObject *p, GCObject *limit) {
 ** then free all objects, except for the main thread.
 */
 void luaC_freeallobjects (lua_State *L) {
-  global_State *g = G(L);
-  luaC_changemode(L, KGC_INC);
-  separatetobefnz(g, 1);  /* separate all objects with finalizers */
-  lua_assert(g->finobj == NULL);
-  callallpendingfinalizers(L);
-  deletelist(L, g->allgc, obj2gco(g->mainthread));
-  deletelist(L, g->finobj, NULL);
-  deletelist(L, g->fixedgc, NULL);  /* collect fixed objects */
-  lua_assert(g->strt.nuse == 0);
+    if (enable_gc) {
+        global_State* g = G(L);
+        luaC_changemode(L, KGC_INC);
+        separatetobefnz(g, 1);  /* separate all objects with finalizers */
+        lua_assert(g->finobj == NULL);
+        callallpendingfinalizers(L);
+        deletelist(L, g->allgc, obj2gco(g->mainthread));
+        deletelist(L, g->finobj, NULL);
+        deletelist(L, g->fixedgc, NULL);  /* collect fixed objects */
+        lua_assert(g->strt.nuse == 0);
+    }
 }
 
 
@@ -1553,9 +1579,11 @@ static lu_mem singlestep (lua_State *L) {
 ** by 'statemask'
 */
 void luaC_runtilstate (lua_State *L, int statesmask) {
-  global_State *g = G(L);
-  while (!testbit(statesmask, g->gcstate))
-    singlestep(L);
+    if (enable_gc) {
+        global_State* g = G(L);
+        while (!testbit(statesmask, g->gcstate))
+            singlestep(L);
+    }
 }
 
 
@@ -1588,14 +1616,16 @@ static void incstep (lua_State *L, global_State *g) {
 ** performs a basic GC step if collector is running
 */
 void luaC_step (lua_State *L) {
-  global_State *g = G(L);
-  lua_assert(!g->gcemergency);
-  if (g->gcrunning) {  /* running? */
-    if(isdecGCmodegen(g))
-      genstep(L, g);
-    else
-      incstep(L, g);
-  }
+    if (enable_gc) {
+        global_State* g = G(L);
+        lua_assert(!g->gcemergency);
+        if (g->gcrunning) {  /* running? */
+            if (isdecGCmodegen(g))
+                genstep(L, g);
+            else
+                incstep(L, g);
+        }
+    }
 }
 
 
@@ -1625,14 +1655,16 @@ static void fullinc (lua_State *L, global_State *g) {
 ** unexpected ways (running finalizers and shrinking some structures).
 */
 void luaC_fullgc (lua_State *L, int isemergency) {
-  global_State *g = G(L);
-  lua_assert(!g->gcemergency);
-  g->gcemergency = isemergency;  /* set flag */
-  if (g->gckind == KGC_INC)
-    fullinc(L, g);
-  else
-    fullgen(L, g);
-  g->gcemergency = 0;
+    if (enable_gc) {
+        global_State* g = G(L);
+        lua_assert(!g->gcemergency);
+        g->gcemergency = isemergency;  /* set flag */
+        if (g->gckind == KGC_INC)
+            fullinc(L, g);
+        else
+            fullgen(L, g);
+        g->gcemergency = 0;
+    }
 }
 
 /* }====================================================== */

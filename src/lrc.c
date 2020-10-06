@@ -12,16 +12,7 @@
 #include <stdio.h>
 #endif
 
-static int enable_rc = 0;
-
-int luaRC_set_enable_rc(int enable)
-{
-    return enable_rc = enable;
-}
-int luaRC_get_enable_rc(void)
-{
-    return enable_rc;
-}
+extern int enable_gc;
 
 
 static lua_State *main_lua_State = 0;
@@ -57,7 +48,7 @@ int luaRC_should_do_rc(lu_byte tt) {
 int luaRC_process_unlink_object(lua_State* L, GCObject* o, struct cstl_array* dup_array, struct cstl_set* collecting);
 int luaRC_process_unlink_upval(lua_State* L, UpVal* uv, struct cstl_array* dup_array, struct cstl_set* collecting);
 
-extern void freeobj(lua_State* L, GCObject* o);
+extern int freeobj(lua_State* L, GCObject* o);
 
 static struct cstl_map* map = 0;
 
@@ -66,12 +57,12 @@ void luaRC_set_destroy(void* value) {
 }
 int luaRC_set_compare(const void* a, const void* b)
 {
-    return (int)(((char*)a) - ((char*)b));
+    return (int)((*(char**)a) - (*(char**)b));
 }
 
 int luaRC_map_compare(const void* a, const void* b)
 {
-    return (int)(((char*)a) - ((char*)b));
+    return (int)((*(char**)a) - (*(char**)b));
 }
 
 void luaRC_ensure_init()
@@ -79,22 +70,42 @@ void luaRC_ensure_init()
     map = (map != 0) ? map : cstl_map_new(luaRC_map_compare, 0, 0);
 }
 
-
+int luaRC_fix(lua_State* L, GCObject* o)
+{
+    int c = 0;
+    if (!enable_gc)
+    {
+        if (map == 0) luaRC_ensure_init();
+        if (cstl_map_exists(map, &o)) 
+        {
+            c = -1;
+            cstl_map_replace(map, &o, &c, sizeof(c));
+        }
+        else 
+        {
+            c=-1;
+            cstl_map_insert(map, &o, sizeof(void*), &c, sizeof(c));
+        }
+    }
+    return c;
+}
 int luaRC_relref_internal(lua_State* L, GCObject* o)
 {
     int c = 0;
-    if (enable_rc) 
+    if (!enable_gc)
     {
         if (map == 0) luaRC_ensure_init();
-        if (cstl_map_exists(map, o)) {
-            c = *(int*)cstl_map_find(map, o);
-            c = c >= 0 ? c : 0;
-            if (c == 0) {
-                cstl_map_remove(map, (void*)o);
-            }
-            else {
-                c--;
-                cstl_map_replace(map, o, &c, sizeof(c));
+        if (cstl_map_exists(map, &o)) {
+            c = *(int*)cstl_map_find(map, &o);
+            /*if c<0, o is fixed*/
+            if (c >= 0) {
+                if (c == 0) {
+                    cstl_map_remove(map, &o);
+                }
+                else {
+                    c--;
+                    cstl_map_replace(map, &o, &c, sizeof(c));
+                }
             }
         }
     }
@@ -103,22 +114,22 @@ int luaRC_relref_internal(lua_State* L, GCObject* o)
 void luaC_process_unlink_gc(lua_State* L, GCObject* gc, struct cstl_array* dup_array, struct cstl_set* collecting) {
     if (gc != 0 && 0 == luaRC_relref_internal(L, gc))
     {
-        if (!cstl_set_exists(collecting, (void*)gc)) {
-            cstl_array_push_back(dup_array, (void*)gc, sizeof(void*));
+        if (!cstl_set_exists(collecting, &gc)) {
+            cstl_array_push_back(dup_array, &gc, sizeof(void*));
         }
     }
 }
 
 int luaRC_process_unlink_string(lua_State* L, TString* s, struct cstl_array* dup_array, struct cstl_set* collecting) {
     int mc = 0;
-    if (s != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, (void*)s, sizeof(void*))) {
+    if (s != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, &s, sizeof(void*))) {
         mc = 1;
     }
     return mc;
 }
 int luaRC_process_unlink_udata(lua_State* L, Udata* u, struct cstl_array* dup_array, struct cstl_set* collecting) {
     int mc = 0;
-    if (u != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, (void*)u, sizeof(void*))) {
+    if (u != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, &u, sizeof(void*))) {
         mc = 1;
         for (int i = 0; i < u->nuvalue; i++) {
             UValue* pv = (u->uv + i);
@@ -143,7 +154,7 @@ extern unsigned int luaH_realasize(const Table* t);
 
 int luaRC_process_unlink_table(lua_State* L, Table* t, struct cstl_array* dup_array, struct cstl_set* collecting) {
     int mc = 0;
-    if (t != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, (void*)t, sizeof(void*))) {
+    if (t != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, &t, sizeof(void*))) {
         mc = 1;
         
         Node* limit = gnodelast(t);
@@ -177,7 +188,7 @@ int luaRC_process_unlink_table(lua_State* L, Table* t, struct cstl_array* dup_ar
 }
 int luaRC_process_unlink_thread(lua_State* L, lua_State* t, struct cstl_array* dup_array, struct cstl_set* collecting) {
     int mc = 0;
-    if (t != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, (void*)t, sizeof(void*))) {
+    if (t != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, &t, sizeof(void*))) {
         mc = 1;
         //stack
         for (int i = 0; i < t->stacksize; i++) {
@@ -202,7 +213,7 @@ int luaRC_process_unlink_thread(lua_State* L, lua_State* t, struct cstl_array* d
 }
 int luaRC_process_unlink_proto(lua_State* L, Proto* p, struct cstl_array* dup_array, struct cstl_set* collecting) {
     int mc = 0;
-    if (p != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, (void*)p, sizeof(void*))) {
+    if (p != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, &p, sizeof(void*))) {
         mc = 1;
         if (p->p != 0) {
             for (int i = 0; i < p->sizep; i++) {
@@ -228,7 +239,7 @@ int luaRC_process_unlink_proto(lua_State* L, Proto* p, struct cstl_array* dup_ar
 
 int luaRC_process_unlink_upval(lua_State* L, UpVal* uv, struct cstl_array* dup_array, struct cstl_set* collecting) {
     int mc = 0;
-    if (uv != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, (void*)uv, sizeof(void*))) {
+    if (uv != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, &uv, sizeof(void*))) {
         mc = 1;
         //if uv->tbc(to-be-closed=open) value is on stack:uv->v
         //if closed, value is uv->u.value;
@@ -244,7 +255,7 @@ int luaRC_process_unlink_upval(lua_State* L, UpVal* uv, struct cstl_array* dup_a
 int luaRC_process_unlink_lcl(lua_State* L, LClosure* lcl, struct cstl_array* dup_array, struct cstl_set* collecting) 
 {
     int mc = 0;
-    if (lcl != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, (void*)lcl, sizeof(void*)))
+    if (lcl != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, &lcl, sizeof(void*)))
     {
         mc = 1;
         if (lcl->p != 0) {
@@ -265,7 +276,7 @@ int luaRC_process_unlink_lcl(lua_State* L, LClosure* lcl, struct cstl_array* dup
 int luaRC_process_unlink_ccl(lua_State* L, CClosure* ccl, struct cstl_array* dup_array, struct cstl_set* collecting)
 {
     int mc = 0;
-    if (ccl != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, (void*)ccl, sizeof(void*)))
+    if (ccl != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, &ccl, sizeof(void*)))
     {
         mc = 1;
         for (int i = 0; i < ccl->nupvalues;i++) {
@@ -355,7 +366,7 @@ int luaRC_process_unlink(lua_State* L, GCObject* m, struct cstl_set* collecting)
         struct cstl_array* rcs_array = cstl_array_new(16, 0, 0);
         if (rcs_array != 0)
         {
-            cstl_array_push_back(rcs_array, (void*)m, sizeof(void*));
+            cstl_array_push_back(rcs_array, &m, sizeof(void*));
             
             struct cstl_array* dup_array = cstl_array_new(cstl_array_size(rcs_array), 0, 0);
             
@@ -398,7 +409,7 @@ int luaRC_collect(lua_State* L, struct cstl_set* collecting)
         struct cstl_iterator* i = cstl_set_new_iterator(collecting);
         if (i != 0) {
             while (i->next(i) != 0) {
-                GCObject* o = (GCObject*)(i->current_key(i));
+                GCObject* o = *(GCObject**)(i->current_key(i));
                 if (o != 0) {
                     freeobj(L, o);
                 }
@@ -412,18 +423,25 @@ int luaRC_collect(lua_State* L, struct cstl_set* collecting)
 int luaRC_addref(lua_State* L, GCObject* o)
 {
     int c = 0;
-    if (enable_rc) {
+    if (!enable_gc)
+    {
         if (map == 0) luaRC_ensure_init();
-        if (cstl_map_exists(map, o)) {
-            c = *(int*)cstl_map_find(map, o);
-            c++;
-            //add one to the ref
-            cstl_map_replace(map, o, &c, sizeof(c));
+        if (cstl_map_exists(map, &o)) {
+            c = *(int*)cstl_map_find(map, &o);
+            if (c >= 0) {
+                c++;
+                //add one to the ref
+                cstl_map_replace(map, &o, &c, sizeof(c));
+            }
+            else 
+            {
+                //c<0: fixed
+            }
         }
-        else
+        else //not found
         {
             c++;
-            cstl_map_insert(map, o, sizeof(void*), &c, sizeof(c));
+            cstl_map_insert(map, &o, sizeof(void*), &c, sizeof(c));
         }
     }
     return c;
@@ -431,7 +449,7 @@ int luaRC_addref(lua_State* L, GCObject* o)
 int luaRC_relref(lua_State* L, GCObject* o)
 {
     int c = 0;
-    if (enable_rc !=0 && o != 0)
+    if (!enable_gc && o != 0)
     {
         c = luaRC_relref_internal(L, o);
 
@@ -460,13 +478,20 @@ void luaRC_ensure_deinit(void)
             lua_State* L = luaRC_get_main_lua_State();
 
             while (i->next(i) != 0) {
-                GCObject* o = (GCObject*)i->current_key(i);
+                GCObject* o = *(GCObject**)i->current_key(i);
                 if (o != 0) {
 #ifdef _DEBUG
-
-                    printf("(leakage) freeing object: %p, count=%d\n", o, *(int*)i->current_value(i));
+                    int c = *(int*)i->current_value(i);
+                    printf("(leakage) freeing object: %p, count=%d", o, c);
 #endif
-                    freeobj(L, o);
+                    if (freeobj(L, o))
+                    {
+                        printf(" FREED\n");
+                    }
+                    else
+                    {
+                        printf(" LEAKED\n");
+                    }
                 }
             }
             cstl_map_delete_iterator(i);
@@ -483,7 +508,7 @@ int luaRC_settt_(TValue* o, lu_byte t)
     {
         o->tt_ = (t);
     }
-    if (enable_rc != 0 && o != 0) 
+    if (!enable_gc && o != 0) 
     {
         if (luaRC_should_do_rc(t)) 
         {

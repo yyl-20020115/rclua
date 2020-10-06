@@ -53,10 +53,8 @@ lua_State* luaRC_get_main_lua_State(void);
 void luaRC_ensure_deinit(void);
 
 int luaRC_addref(lua_State* L, GCObject* o);
+int luaRC_fix(lua_State* L, GCObject* o);
 
 int luaRC_settt_(TValue* o, lu_byte t);
-
-int luaRC_set_enable_rc(int enable);
-int luaRC_get_enable_rc(void);
 
 #endif
