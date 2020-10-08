@@ -310,7 +310,7 @@ static void close_state (lua_State *L) {
   luaC_freeallobjects(L);  /* collect all objects */
   if (ttisnil(&g->nilvalue))  /* closing a fully built state? */
     luai_userstateclose(L);
-  luaRC_deinit();
+  luaRC_deinit(L);
   luaM_freearray(L, G(L)->strt.hash, G(L)->strt.size);
   freestack(L);
   lua_assert(gettotalbytes(g) == sizeof(LG));

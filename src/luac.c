@@ -206,13 +206,11 @@ int c_main(int argc, char* argv[])
  if (argc<=0) usage("no input files given");
  L=luaL_newstate();
  if (L==NULL) fatal("cannot create state: not enough memory");
- luaRC_set_main_lua_State(L);
  lua_pushcfunction(L,&pmain);
  lua_pushinteger(L,argc);
  lua_pushlightuserdata(L,argv);
  if (lua_pcall(L,2,0,0)!=LUA_OK) fatal(lua_tostring(L,-1));
  lua_close(L);
- luaRC_deinit();
  return EXIT_SUCCESS;
 }
 

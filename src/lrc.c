@@ -14,20 +14,6 @@
 
 extern int enable_gc;
 
-
-static lua_State *main_lua_State = 0;
-
-int luaRC_set_main_lua_State(lua_State* lua_State)
-{
-    main_lua_State = lua_State;
-    return 0;
-}
-lua_State* luaRC_get_main_lua_State(void)
-{
-    return main_lua_State;
-}
-
-
 int luaRC_process_unlink_object(lua_State* L, GCObject* o, struct cstl_array* dup_array, struct cstl_set* collecting);
 int luaRC_process_unlink_upval(lua_State* L, UpVal* uv, struct cstl_array* dup_array, struct cstl_set* collecting);
 
@@ -411,14 +397,12 @@ l_mem luaRC_subref_object(lua_State* L, GCObject* o)
     }
     return c;
 }
-void luaRC_deinit(void)
+void luaRC_deinit(lua_State* L)
 {
     if (objects != 0)
     {
         struct cstl_iterator* i = cstl_set_new_iterator(objects);
         if (i != 0) {
-            lua_State* L = luaRC_get_main_lua_State();
-
             while (i->next(i) != 0) {
                 GCObject* o = *(GCObject**)i->current_key(i);
                 if (o != 0) {

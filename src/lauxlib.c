@@ -1037,8 +1037,6 @@ static void warnf (void *ud, const char *message, int tocont) {
 LUALIB_API lua_State *luaL_newstate (void) {
   lua_State *L = lua_newstate(l_alloc, NULL);
   if (L) {
-    luaRC_set_main_lua_State(L);
-
     int *warnstate;  /* space for warning state */
     lua_atpanic(L, &panic);
     warnstate = (int *)lua_newuserdatauv(L, sizeof(int), 0);

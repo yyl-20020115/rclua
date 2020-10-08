@@ -42,15 +42,7 @@ typedef struct GCObject {
   CommonHeader;
 } GCObject;
 
-
-
-
-int luaRC_set_main_lua_State(lua_State* lua_State);
-
-lua_State* luaRC_get_main_lua_State(void);
-
-
-void luaRC_deinit(void);
+void luaRC_deinit(lua_State* L);
 
 l_mem luaRC_fix_object(lua_State* L, GCObject* o);
 l_mem luaRC_addref_object(lua_State* L, GCObject* o);
