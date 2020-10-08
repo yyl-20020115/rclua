@@ -248,7 +248,7 @@ void luaC_fix (lua_State *L, GCObject *o) {
   }
   else
   {
-      luaRC_fix(L, o);
+      luaRC_fix_object(L, o);
   }
 }
 
@@ -262,7 +262,12 @@ GCObject* luaC_newobj(lua_State* L, int tt, size_t sz) {
     GCObject* o = cast(GCObject*, luaM_newobject(L, novariant(tt), sz));
     if (o != NULL)
     {
-        luaRC_addref(L, o);
+        /*We have to initialize the count to 0 first, 
+         *since malloc or realloc may return invalid data 
+         * with count*/
+        o->count = 0;
+
+        luaRC_addref_object(L, o);
         o->marked = luaC_white(g);
         o->tt = tt;
         if (enable_gc)

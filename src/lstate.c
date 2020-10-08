@@ -310,7 +310,7 @@ static void close_state (lua_State *L) {
   luaC_freeallobjects(L);  /* collect all objects */
   if (ttisnil(&g->nilvalue))  /* closing a fully built state? */
     luai_userstateclose(L);
-  luaRC_ensure_deinit();
+  luaRC_deinit();
   luaM_freearray(L, G(L)->strt.hash, G(L)->strt.size);
   freestack(L);
   lua_assert(gettotalbytes(g) == sizeof(LG));
@@ -331,7 +331,8 @@ LUA_API lua_State *lua_newthread (lua_State *L) {
   L1->next = g->allgc;
   g->allgc = obj2gco(L1);
   /* anchor it on L stack */
-  setthvalue2s(L, L->top, L1);
+  /*RC:YILIN*/
+  setthvalue_to_new_addref(L, s2v(L->top), L1);
   api_incr_top(L);
   preinit_thread(L1, g);
   L1->nCcalls = getCcalls(L);

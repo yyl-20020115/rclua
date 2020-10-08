@@ -563,10 +563,17 @@ static int addk (FuncState *fs, TValue *key, TValue *v) {
   k = fs->nk;
   /* numerical value does not need GC barrier;
      table has no metatable, so it does not need to invalidate cache */
-  setivalue(idx, k);
+  /*setivalue(idx, k);*/
+  /*RC:YILIN*/
+  setivalue_subref(L, idx, k);
+
   luaM_growvector(L, f->k, k, f->sizek, TValue, MAXARG_Ax, "constants");
   while (oldsize < f->sizek) setnilvalue(&f->k[oldsize++]);
   setobj(L, &f->k[k], v);
+
+  /*RC:YILIN*/
+  luaRC_addref(L, v);
+
   fs->nk++;
   luaC_barrier(L, f, v);
   return k;
@@ -578,8 +585,12 @@ static int addk (FuncState *fs, TValue *key, TValue *v) {
 */
 static int stringK (FuncState *fs, TString *s) {
   TValue o;
-  setsvalue(fs->ls->L, &o, s);
-  return addk(fs, &o, &o);  /* use string itself as key */
+  int n = 0;
+  /*RC:YILIN*/
+  setsvalue_to_new_addref(fs->ls->L, &o, s);
+  n = addk(fs, &o, &o);  /* use string itself as key */
+  setnilvalue_subref(fs->ls->L, &o);
+  return n;
 }
 
 
@@ -631,10 +642,14 @@ static int boolT (FuncState *fs) {
 */
 static int nilK (FuncState *fs) {
   TValue k, v;
+  int n = 0;
   setnilvalue(&v);
+  /*RC:YILIN*/
   /* cannot use nil as key; instead use table itself to represent nil */
-  sethvalue(fs->ls->L, &k, fs->ls->h);
-  return addk(fs, &k, &v);
+  sethvalue_to_new_addref(fs->ls->L, &k, fs->ls->h);
+  n= addk(fs, &k, &v);
+  setnilvalue_subref(fs->ls->L, &k);
+  return n;
 }
 
 

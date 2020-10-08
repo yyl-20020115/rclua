@@ -27,7 +27,7 @@
 #include "lstate.h"
 #include "lstring.h"
 #include "lvm.h"
-
+#include "lrc.h"
 
 /*
 ** Computes ceil(log2(x))
@@ -478,19 +478,22 @@ const char *luaO_pushvfstring (lua_State *L, const char *fmt, va_list argp) {
       }
       case 'd': {  /* an 'int' */
         TValue num;
-        setivalue(&num, va_arg(argp, int));
+        /*RC:YILIN*/
+        setivalue_subref(L, &num, va_arg(argp, int));
         addnum2buff(&buff, &num);
         break;
       }
       case 'I': {  /* a 'lua_Integer' */
         TValue num;
-        setivalue(&num, cast(lua_Integer, va_arg(argp, l_uacInt)));
+        /*RC:YILIN*/
+        setivalue_subref(L, &num, cast(lua_Integer, va_arg(argp, l_uacInt)));
         addnum2buff(&buff, &num);
         break;
       }
       case 'f': {  /* a 'lua_Number' */
+        /*RC:YILIN*/
         TValue num;
-        setfltvalue(&num, cast_num(va_arg(argp, l_uacNumber)));
+        setfltvalue_subref(L, &num, cast_num(va_arg(argp, l_uacNumber)));
         addnum2buff(&buff, &num);
         break;
       }
@@ -580,4 +583,13 @@ void luaO_chunkid (char *out, const char *source, size_t srclen) {
     memcpy(out, POS, (LL(POS) + 1) * sizeof(char));
   }
 }
-
+#if 0
+int rangeisnil(const TValue* begin, const TValue* end) {
+    const TValue* p;
+    for (p = begin; p < end; p++) {
+        if (!ttisnil(p))
+            return 0;
+    }
+    return 1;
+}
+#endif

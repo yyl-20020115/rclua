@@ -130,7 +130,10 @@ void luaT_callTMres (lua_State *L, const TValue *f, const TValue *p1,
   else
     luaD_callnoyield(L, func, 1);
   res = restorestack(L, result);
-  setobjs2s(L, res, --L->top);  /* move result to its place */
+  setobjs2s(L, res, L->top-1);  /* move result to its place */
+  /*RC:YILIN*/
+  setnilvalue_subref(L, s2v(L->top-1));
+  L->top--;
 }
 
 
@@ -265,6 +268,7 @@ void luaT_getvarargs (lua_State *L, CallInfo *ci, StkId where, int wanted) {
   for (i = 0; i < wanted && i < nextra; i++)
     setobjs2s(L, where + i, ci->func - nextra + i);
   for (; i < wanted; i++)   /* complete required results with nil */
-    setnilvalue(s2v(where + i));
+      /*RC:YILIN*/
+    setnilvalue_subref(L, s2v(where + i));
 }
 

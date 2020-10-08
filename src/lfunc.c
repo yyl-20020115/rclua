@@ -18,6 +18,7 @@
 #include "ldo.h"
 #include "lfunc.h"
 #include "lgc.h"
+#include "lrc.h"
 #include "lmem.h"
 #include "lobject.h"
 #include "lstate.h"
@@ -232,7 +233,8 @@ int luaF_close (lua_State *L, StkId level, int status) {
       level = restorestack(L, levelrel);
     }
     luaF_unlinkupval(uv);
-    setobj(L, slot, uv->v);  /* move value to upvalue slot */
+    /*RC:YILIN*/
+    setobj_to_new_addref(L, slot, uv->v);  /* move value to upvalue slot */
     uv->v = slot;  /* now current value lives here */
     if (!iswhite(uv))
       gray2black(uv);  /* closed upvalues cannot be gray */

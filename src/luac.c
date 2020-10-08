@@ -212,7 +212,7 @@ int c_main(int argc, char* argv[])
  lua_pushlightuserdata(L,argv);
  if (lua_pcall(L,2,0,0)!=LUA_OK) fatal(lua_tostring(L,-1));
  lua_close(L);
- luaRC_ensure_deinit();
+ luaRC_deinit();
  return EXIT_SUCCESS;
 }
 

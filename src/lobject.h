@@ -201,6 +201,17 @@ typedef StackValue *StkId;
 #define setbfvalue(obj)		settt_(obj, LUA_VFALSE)
 #define setbtvalue(obj)		settt_(obj, LUA_VTRUE)
 
+#define setbfvalue_subref(L,obj) \
+  { TValue *i_v=(obj); TValue dup=*i_v; \
+    i_v->value_.i=0; settt_(i_v, LUA_VFALSE);\
+    luaRC_subref(L,&dup); }
+
+#define setbtvalue_subref(L,obj) \
+  { TValue *i_v=(obj); TValue dup=*i_v; \
+    i_v->value_.i=1; settt_(i_v, LUA_VTRUE);\
+    luaRC_subref(L,&dup); }
+
+
 /* }================================================================== */
 
 

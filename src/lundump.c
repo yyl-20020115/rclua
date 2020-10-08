@@ -177,7 +177,7 @@ static void loadConstants (LoadState *S, Proto *f) {
         break;
       case LUA_VSHRSTR:
       case LUA_VLNGSTR:
-        setsvalue2n(S->L, o, loadString(S, f));
+        setsvalue_to_new_addref(S->L, o, loadString(S, f));
         break;
       default: lua_assert(0);
     }
@@ -233,13 +233,16 @@ static void loadDebug (LoadState *S, Proto *f) {
   for (i = 0; i < n; i++)
     f->locvars[i].varname = NULL;
   for (i = 0; i < n; i++) {
-    f->locvars[i].varname = loadStringN(S, f);
+      /*RC:YILIN*/
+    luaRC_addref_object(S->L,(GCObject*)(f->locvars[i].varname = loadStringN(S, f)));
+
     f->locvars[i].startpc = loadInt(S);
     f->locvars[i].endpc = loadInt(S);
   }
   n = loadInt(S);
   for (i = 0; i < n; i++)
-    f->upvalues[i].name = loadStringN(S, f);
+      /*RC:YILIN*/
+    luaRC_addref_object(S->L,(GCObject*)(f->upvalues[i].name = loadStringN(S, f)));
 }
 
 
