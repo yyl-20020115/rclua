@@ -178,6 +178,4 @@ luaRC_addref(L, i_v);checkliveness(G(L),i_v); }
 o1->value_ = o2->value_; settt_(o1,o2->tt_); \
 luaRC_addref(L, o2); checkliveness(G(L),o1); }
 
-
-
 #endif
