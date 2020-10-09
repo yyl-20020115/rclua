@@ -1,8 +1,8 @@
 /*
-** $Id: lauxlib.h $
-** Auxiliary functions for building Lua libraries
-** See Copyright Notice in lua.h
-*/
+ ** $Id: lauxlib.h $
+ ** Auxiliary functions for building Lua libraries
+ ** See Copyright Notice in lua.h
+ */
 
 
 #ifndef lauxlib_h
@@ -35,8 +35,8 @@ typedef struct luaL_Buffer luaL_Buffer;
 
 
 typedef struct luaL_Reg {
-  const char *name;
-  lua_CFunction func;
+    const char *name;
+    lua_CFunction func;
 } luaL_Reg;
 
 
@@ -44,7 +44,7 @@ typedef struct luaL_Reg {
 
 LUALIB_API void (luaL_checkversion_) (lua_State *L, lua_Number ver, size_t sz);
 #define luaL_checkversion(L)  \
-	  luaL_checkversion_(L, LUA_VERSION_NUM, LUAL_NUMSIZES)
+luaL_checkversion_(L, LUA_VERSION_NUM, LUAL_NUMSIZES)
 
 LUALIB_API int (luaL_getmetafield) (lua_State *L, int obj, const char *e);
 LUALIB_API int (luaL_callmeta) (lua_State *L, int obj, const char *e);
@@ -52,7 +52,7 @@ LUALIB_API const char *(luaL_tolstring) (lua_State *L, int idx, size_t *len);
 LUALIB_API int (luaL_argerror) (lua_State *L, int arg, const char *extramsg);
 LUALIB_API int (luaL_typeerror) (lua_State *L, int arg, const char *tname);
 LUALIB_API const char *(luaL_checklstring) (lua_State *L, int arg,
-                                                          size_t *l);
+                                            size_t *l);
 LUALIB_API const char *(luaL_optlstring) (lua_State *L, int arg,
                                           const char *def, size_t *l);
 LUALIB_API lua_Number (luaL_checknumber) (lua_State *L, int arg);
@@ -89,7 +89,7 @@ LUALIB_API int (luaL_ref) (lua_State *L, int t);
 LUALIB_API void (luaL_unref) (lua_State *L, int t, int ref);
 
 LUALIB_API int (luaL_loadfilex) (lua_State *L, const char *filename,
-                                               const char *mode);
+                                 const char *mode);
 
 #define luaL_loadfile(L,f)	luaL_loadfilex(L,f,NULL)
 
@@ -102,7 +102,7 @@ LUALIB_API lua_State *(luaL_newstate) (void);
 LUALIB_API lua_Integer (luaL_len) (lua_State *L, int idx);
 
 LUALIB_API void luaL_addgsub (luaL_Buffer *b, const char *s,
-                                     const char *p, const char *r);
+                              const char *p, const char *r);
 LUALIB_API const char *(luaL_gsub) (lua_State *L, const char *s,
                                     const char *p, const char *r);
 
@@ -117,23 +117,23 @@ LUALIB_API void (luaL_requiref) (lua_State *L, const char *modname,
                                  lua_CFunction openf, int glb);
 
 /*
-** ===============================================================
-** some useful macros
-** ===============================================================
-*/
+ ** ===============================================================
+ ** some useful macros
+ ** ===============================================================
+ */
 
 
 #define luaL_newlibtable(L,l)	\
-  lua_createtable(L, 0, sizeof(l)/sizeof((l)[0]) - 1)
+lua_createtable(L, 0, sizeof(l)/sizeof((l)[0]) - 1)
 
 #define luaL_newlib(L,l)  \
-  (luaL_checkversion(L), luaL_newlibtable(L,l), luaL_setfuncs(L,l,0))
+(luaL_checkversion(L), luaL_newlibtable(L,l), luaL_setfuncs(L,l,0))
 
 #define luaL_argcheck(L, cond,arg,extramsg)	\
-		((void)((cond) || luaL_argerror(L, (arg), (extramsg))))
+((void)((cond) || luaL_argerror(L, (arg), (extramsg))))
 
 #define luaL_argexpected(L,cond,arg,tname)	\
-		((void)((cond) || luaL_typeerror(L, (arg), (tname))))
+((void)((cond) || luaL_typeerror(L, (arg), (tname))))
 
 #define luaL_checkstring(L,n)	(luaL_checklstring(L, (n), NULL))
 #define luaL_optstring(L,n,d)	(luaL_optlstring(L, (n), (d), NULL))
@@ -141,10 +141,10 @@ LUALIB_API void (luaL_requiref) (lua_State *L, const char *modname,
 #define luaL_typename(L,i)	lua_typename(L, lua_type(L,(i)))
 
 #define luaL_dofile(L, fn) \
-	(luaL_loadfile(L, fn) || lua_pcall(L, 0, LUA_MULTRET, 0))
+(luaL_loadfile(L, fn) || lua_pcall(L, 0, LUA_MULTRET, 0))
 
 #define luaL_dostring(L, s) \
-	(luaL_loadstring(L, s) || lua_pcall(L, 0, LUA_MULTRET, 0))
+(luaL_loadstring(L, s) || lua_pcall(L, 0, LUA_MULTRET, 0))
 
 #define luaL_getmetatable(L,n)	(lua_getfield(L, LUA_REGISTRYINDEX, (n)))
 
@@ -158,20 +158,20 @@ LUALIB_API void (luaL_requiref) (lua_State *L, const char *modname,
 
 
 /*
-** {======================================================
-** Generic Buffer manipulation
-** =======================================================
-*/
+ ** {======================================================
+ ** Generic Buffer manipulation
+ ** =======================================================
+ */
 
 struct luaL_Buffer {
-  char *b;  /* buffer address */
-  size_t size;  /* buffer size */
-  size_t n;  /* number of characters in buffer */
-  lua_State *L;
-  union {
-    LUAI_MAXALIGN;  /* ensure maximum alignment for buffer */
-    char b[LUAL_BUFFERSIZE];  /* initial buffer */
-  } init;
+    char *b;  /* buffer address */
+    size_t size;  /* buffer size */
+    size_t n;  /* number of characters in buffer */
+    lua_State *L;
+    union {
+        LUAI_MAXALIGN;  /* ensure maximum alignment for buffer */
+        char b[LUAL_BUFFERSIZE];  /* initial buffer */
+    } init;
 };
 
 
@@ -180,8 +180,8 @@ struct luaL_Buffer {
 
 
 #define luaL_addchar(B,c) \
-  ((void)((B)->n < (B)->size || luaL_prepbuffsize((B), 1)), \
-   ((B)->b[(B)->n++] = (c)))
+((void)((B)->n < (B)->size || luaL_prepbuffsize((B), 1)), \
+((B)->b[(B)->n++] = (c)))
 
 #define luaL_addsize(B,s)	((B)->n += (s))
 
@@ -203,32 +203,32 @@ LUALIB_API char *(luaL_buffinitsize) (lua_State *L, luaL_Buffer *B, size_t sz);
 
 
 /*
-** {======================================================
-** File handles for IO library
-** =======================================================
-*/
+ ** {======================================================
+ ** File handles for IO library
+ ** =======================================================
+ */
 
 /*
-** A file handle is a userdata with metatable 'LUA_FILEHANDLE' and
-** initial structure 'luaL_Stream' (it may contain other fields
-** after that initial structure).
-*/
+ ** A file handle is a userdata with metatable 'LUA_FILEHANDLE' and
+ ** initial structure 'luaL_Stream' (it may contain other fields
+ ** after that initial structure).
+ */
 
 #define LUA_FILEHANDLE          "FILE*"
 
 
 typedef struct luaL_Stream {
-  FILE *f;  /* stream (NULL for incompletely created streams) */
-  lua_CFunction closef;  /* to close stream (NULL for closed streams) */
+    FILE *f;  /* stream (NULL for incompletely created streams) */
+    lua_CFunction closef;  /* to close stream (NULL for closed streams) */
 } luaL_Stream;
 
 /* }====================================================== */
 
 /*
-** {==================================================================
-** "Abstraction Layer" for basic report of messages and errors
-** ===================================================================
-*/
+ ** {==================================================================
+ ** "Abstraction Layer" for basic report of messages and errors
+ ** ===================================================================
+ */
 
 /* print a string */
 #if !defined(lua_writestring)
@@ -243,22 +243,22 @@ typedef struct luaL_Stream {
 /* print an error message */
 #if !defined(lua_writestringerror)
 #define lua_writestringerror(s,p) \
-        (fprintf(stderr, (s), (p)), fflush(stderr))
+(fprintf(stderr, (s), (p)), fflush(stderr))
 #endif
 
 /* }================================================================== */
 
 
 /*
-** {============================================================
-** Compatibility with deprecated conversions
-** =============================================================
-*/
+ ** {============================================================
+ ** Compatibility with deprecated conversions
+ ** =============================================================
+ */
 #if defined(LUA_COMPAT_APIINTCASTS)
 
 #define luaL_checkunsigned(L,a)	((lua_Unsigned)luaL_checkinteger(L,a))
 #define luaL_optunsigned(L,a,d)	\
-	((lua_Unsigned)luaL_optinteger(L,a,(lua_Integer)(d)))
+((lua_Unsigned)luaL_optinteger(L,a,(lua_Integer)(d)))
 
 #define luaL_checkint(L,n)	((int)luaL_checkinteger(L, (n)))
 #define luaL_optint(L,n,d)	((int)luaL_optinteger(L, (n), (d)))

@@ -1,16 +1,16 @@
 /*
-** $Id: lprefix.h $
-** Definitions for Lua code that must come before any other header file
-** See Copyright Notice in lua.h
-*/
+ ** $Id: lprefix.h $
+ ** Definitions for Lua code that must come before any other header file
+ ** See Copyright Notice in lua.h
+ */
 
 #ifndef lprefix_h
 #define lprefix_h
 
 
 /*
-** Allows POSIX/XSI stuff
-*/
+ ** Allows POSIX/XSI stuff
+ */
 #if !defined(LUA_USE_C89)	/* { */
 
 #if !defined(_XOPEN_SOURCE)
@@ -20,8 +20,8 @@
 #endif
 
 /*
-** Allows manipulation of large files in gcc and some other compilers
-*/
+ ** Allows manipulation of large files in gcc and some other compilers
+ */
 #if !defined(LUA_32BITS) && !defined(_FILE_OFFSET_BITS)
 #define _LARGEFILE_SOURCE       1
 #define _FILE_OFFSET_BITS       64
@@ -31,8 +31,8 @@
 
 
 /*
-** Windows stuff
-*/
+ ** Windows stuff
+ */
 #if defined(_WIN32)	/* { */
 
 #if !defined(_CRT_SECURE_NO_WARNINGS)

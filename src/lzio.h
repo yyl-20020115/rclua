@@ -1,8 +1,8 @@
 /*
-** $Id: lzio.h $
-** Buffered streams
-** See Copyright Notice in lua.h
-*/
+ ** $Id: lzio.h $
+ ** Buffered streams
+ ** See Copyright Notice in lua.h
+ */
 
 
 #ifndef lzio_h
@@ -21,9 +21,9 @@ typedef struct Zio ZIO;
 
 
 typedef struct Mbuffer {
-  char *buffer;
-  size_t n;
-  size_t buffsize;
+    char *buffer;
+    size_t n;
+    size_t buffsize;
 } Mbuffer;
 
 #define luaZ_initbuffer(L, buff) ((buff)->buffer = NULL, (buff)->buffsize = 0)
@@ -37,15 +37,15 @@ typedef struct Mbuffer {
 
 
 #define luaZ_resizebuffer(L, buff, size) \
-	((buff)->buffer = luaM_reallocvchar(L, (buff)->buffer, \
-				(buff)->buffsize, size), \
-	(buff)->buffsize = size)
+((buff)->buffer = luaM_reallocvchar(L, (buff)->buffer, \
+(buff)->buffsize, size), \
+(buff)->buffsize = size)
 
 #define luaZ_freebuffer(L, buff)	luaZ_resizebuffer(L, buff, 0)
 
 
 LUAI_FUNC void luaZ_init (lua_State *L, ZIO *z, lua_Reader reader,
-                                        void *data);
+                          void *data);
 LUAI_FUNC size_t luaZ_read (ZIO* z, void *b, size_t n);	/* read next n bytes */
 
 
@@ -53,11 +53,11 @@ LUAI_FUNC size_t luaZ_read (ZIO* z, void *b, size_t n);	/* read next n bytes */
 /* --------- Private Part ------------------ */
 
 struct Zio {
-  size_t n;			/* bytes still unread */
-  const char *p;		/* current position in buffer */
-  lua_Reader reader;		/* reader function */
-  void *data;			/* additional data */
-  lua_State *L;			/* Lua state (for reader) */
+    size_t n;			/* bytes still unread */
+    const char *p;		/* current position in buffer */
+    lua_Reader reader;		/* reader function */
+    void *data;			/* additional data */
+    lua_State *L;			/* Lua state (for reader) */
 };
 
 

@@ -1,8 +1,8 @@
 /*
-** $Id: lfunc.h $
-** Auxiliary functions to manipulate prototypes and closures
-** See Copyright Notice in lua.h
-*/
+ ** $Id: lfunc.h $
+ ** Auxiliary functions to manipulate prototypes and closures
+ ** See Copyright Notice in lua.h
+ */
 
 #ifndef lfunc_h
 #define lfunc_h
@@ -12,10 +12,10 @@
 
 
 #define sizeCclosure(n)	(cast_int(offsetof(CClosure, upvalue)) + \
-                         cast_int(sizeof(TValue)) * (n))
+cast_int(sizeof(TValue)) * (n))
 
 #define sizeLclosure(n)	(cast_int(offsetof(LClosure, upvals)) + \
-                         cast_int(sizeof(TValue *)) * (n))
+cast_int(sizeof(TValue *)) * (n))
 
 
 /* test whether thread is in 'twups' list */
@@ -23,9 +23,9 @@
 
 
 /*
-** maximum number of upvalues in a closure (both C and Lua). (Value
-** must fit in a VM register.)
-*/
+ ** maximum number of upvalues in a closure (both C and Lua). (Value
+ ** must fit in a VM register.)
+ */
 #define MAXUPVAL	255
 
 
@@ -36,15 +36,15 @@
 
 
 /*
-** maximum number of misses before giving up the cache of closures
-** in prototypes
-*/
+ ** maximum number of misses before giving up the cache of closures
+ ** in prototypes
+ */
 #define MAXMISS		10
 
 
 /*
-** Special "status" for 'luaF_close'
-*/
+ ** Special "status" for 'luaF_close'
+ */
 
 /* close upvalues without running their closing methods */
 #define NOCLOSINGMETH	(-1)

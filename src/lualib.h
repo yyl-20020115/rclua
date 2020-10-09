@@ -1,8 +1,8 @@
 /*
-** $Id: lualib.h $
-** Lua standard libraries
-** See Copyright Notice in lua.h
-*/
+ ** $Id: lualib.h $
+ ** Lua standard libraries
+ ** See Copyright Notice in lua.h
+ */
 
 
 #ifndef lualib_h

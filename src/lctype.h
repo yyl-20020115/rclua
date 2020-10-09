@@ -1,8 +1,8 @@
 /*
-** $Id: lctype.h $
-** 'ctype' functions for Lua
-** See Copyright Notice in lua.h
-*/
+ ** $Id: lctype.h $
+ ** 'ctype' functions for Lua
+ ** See Copyright Notice in lua.h
+ */
 
 #ifndef lctype_h
 #define lctype_h
@@ -11,10 +11,10 @@
 
 
 /*
-** WARNING: the functions defined here do not necessarily correspond
-** to the similar functions in the standard C ctype.h. They are
-** optimized for the specific needs of Lua
-*/
+ ** WARNING: the functions defined here do not necessarily correspond
+ ** to the similar functions in the standard C ctype.h. They are
+ ** optimized for the specific needs of Lua
+ */
 
 #if !defined(LUA_USE_CTYPE)
 
@@ -47,13 +47,13 @@
 
 
 /*
-** add 1 to char to allow index -1 (EOZ)
-*/
+ ** add 1 to char to allow index -1 (EOZ)
+ */
 #define testprop(c,p)	(luai_ctype_[(c)+1] & (p))
 
 /*
-** 'lalpha' (Lua alphabetic) and 'lalnum' (Lua alphanumeric) both include '_'
-*/
+ ** 'lalpha' (Lua alphabetic) and 'lalnum' (Lua alphanumeric) both include '_'
+ */
 #define lislalpha(c)	testprop(c, MASK(ALPHABIT))
 #define lislalnum(c)	testprop(c, (MASK(ALPHABIT) | MASK(DIGITBIT)))
 #define lisdigit(c)	testprop(c, MASK(DIGITBIT))
@@ -62,8 +62,8 @@
 #define lisxdigit(c)	testprop(c, MASK(XDIGITBIT))
 
 /*
-** this 'ltolower' only works for alphabetic characters
-*/
+ ** this 'ltolower' only works for alphabetic characters
+ */
 #define ltolower(c)	((c) | ('A' ^ 'a'))
 
 
@@ -74,8 +74,8 @@ LUAI_DDEC(const lu_byte luai_ctype_[UCHAR_MAX + 2];)
 #else			/* }{ */
 
 /*
-** use standard C ctypes
-*/
+ ** use standard C ctypes
+ */
 
 #include <ctype.h>
 

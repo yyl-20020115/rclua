@@ -1,8 +1,8 @@
 /*
-** $Id: lundump.h $
-** load precompiled Lua chunks
-** See Copyright Notice in lua.h
-*/
+ ** $Id: lundump.h $
+ ** load precompiled Lua chunks
+ ** See Copyright Notice in lua.h
+ */
 
 #ifndef lundump_h
 #define lundump_h
@@ -19,8 +19,8 @@
 #define LUAC_NUM	cast_num(370.5)
 
 /*
-** Encode major-minor version in one byte, one nibble for each
-*/
+ ** Encode major-minor version in one byte, one nibble for each
+ */
 #define MYINT(s)	(s[0]-'0')  /* assume one-digit numerals */
 #define LUAC_VERSION	(MYINT(LUA_VERSION_MAJOR)*16+MYINT(LUA_VERSION_MINOR))
 

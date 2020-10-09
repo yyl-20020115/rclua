@@ -1,8 +1,8 @@
 /*
-** $Id: llimits.h $
-** Limits, basic types, and some other 'installation-dependent' definitions
-** See Copyright Notice in lua.h
-*/
+ ** $Id: llimits.h $
+ ** Limits, basic types, and some other 'installation-dependent' definitions
+ ** See Copyright Notice in lua.h
+ */
 
 #ifndef llimits_h
 #define llimits_h
@@ -16,10 +16,10 @@
 
 
 /*
-** 'lu_mem' and 'l_mem' are unsigned/signed integers big enough to count
-** the total memory used by Lua (in bytes). Usually, 'size_t' and
-** 'ptrdiff_t' should work, but we use 'long' for 16-bit machines.
-*/
+ ** 'lu_mem' and 'l_mem' are unsigned/signed integers big enough to count
+ ** the total memory used by Lua (in bytes). Usually, 'size_t' and
+ ** 'ptrdiff_t' should work, but we use 'long' for 16-bit machines.
+ */
 #if defined(LUAI_MEM)		/* { external definitions? */
 typedef LUAI_UMEM lu_mem;
 typedef LUAI_MEM l_mem;
@@ -42,7 +42,7 @@ typedef signed char ls_byte;
 
 /* maximum size visible for Lua (must be representable in a lua_Integer) */
 #define MAX_SIZE	(sizeof(size_t) < sizeof(lua_Integer) ? MAX_SIZET \
-                          : (size_t)(LUA_MAXINTEGER))
+: (size_t)(LUA_MAXINTEGER))
 
 
 #define MAX_LUMEM	((lu_mem)(~(lu_mem)0))
@@ -54,15 +54,15 @@ typedef signed char ls_byte;
 
 
 /*
-** floor of the log2 of the maximum signed value for integral type 't'.
-** (That is, maximum 'n' such that '2^n' fits in the given signed type.)
-*/
+ ** floor of the log2 of the maximum signed value for integral type 't'.
+ ** (That is, maximum 'n' such that '2^n' fits in the given signed type.)
+ */
 #define log2maxs(t)	(sizeof(t) * 8 - 2)
 
 
 /*
-** test whether an unsigned value is a power of 2 (or zero)
-*/
+ ** test whether an unsigned value is a power of 2 (or zero)
+ */
 #define ispow2(x)	(((x) & ((x) - 1)) == 0)
 
 
@@ -71,10 +71,10 @@ typedef signed char ls_byte;
 
 
 /*
-** conversion of pointer to unsigned integer:
-** this is for hashing only; there is no problem if the integer
-** cannot hold the whole pointer value
-*/
+ ** conversion of pointer to unsigned integer:
+ ** this is for hashing only; there is no problem if the integer
+ ** cannot hold the whole pointer value
+ */
 #define point2uint(p)	((unsigned int)((size_t)(p) & UINT_MAX))
 
 
@@ -96,8 +96,8 @@ typedef LUAI_UACINT l_uacInt;
 #endif
 
 /*
-** assertion for checking API calls
-*/
+ ** assertion for checking API calls
+ */
 #if !defined(luai_apicheck)
 #define luai_apicheck(l,e)	((void)l, lua_assert(e))
 #endif
@@ -132,18 +132,18 @@ typedef LUAI_UACINT l_uacInt;
 #endif
 
 /*
-** cast a lua_Unsigned to a signed lua_Integer; this cast is
-** not strict ISO C, but two-complement architectures should
-** work fine.
-*/
+ ** cast a lua_Unsigned to a signed lua_Integer; this cast is
+ ** not strict ISO C, but two-complement architectures should
+ ** work fine.
+ */
 #if !defined(l_castU2S)
 #define l_castU2S(i)	((lua_Integer)(i))
 #endif
 
 
 /*
-** macros to improve jump prediction (used mainly for error handling)
-*/
+ ** macros to improve jump prediction (used mainly for error handling)
+ */
 #if !defined(likely)
 
 #if defined(__GNUC__)
@@ -158,8 +158,8 @@ typedef LUAI_UACINT l_uacInt;
 
 
 /*
-** non-return type
-*/
+ ** non-return type
+ */
 #if !defined(l_noret)
 
 #if defined(__GNUC__)
@@ -174,9 +174,9 @@ typedef LUAI_UACINT l_uacInt;
 
 
 /*
-** type for virtual-machine instructions;
-** must be an unsigned with (at least) 4 bytes (see details in lopcodes.h)
-*/
+ ** type for virtual-machine instructions;
+ ** must be an unsigned with (at least) 4 bytes (see details in lopcodes.h)
+ */
 #if LUAI_IS32INT
 typedef unsigned int l_uint32;
 #else
@@ -188,32 +188,32 @@ typedef l_uint32 Instruction;
 
 
 /*
-** Maximum length for short strings, that is, strings that are
-** internalized. (Cannot be smaller than reserved words or tags for
-** metamethods, as these strings must be internalized;
-** #("function") = 8, #("__newindex") = 10.)
-*/
+ ** Maximum length for short strings, that is, strings that are
+ ** internalized. (Cannot be smaller than reserved words or tags for
+ ** metamethods, as these strings must be internalized;
+ ** #("function") = 8, #("__newindex") = 10.)
+ */
 #if !defined(LUAI_MAXSHORTLEN)
 #define LUAI_MAXSHORTLEN	40
 #endif
 
 
 /*
-** Initial size for the string table (must be power of 2).
-** The Lua core alone registers ~50 strings (reserved words +
-** metaevent keys + a few others). Libraries would typically add
-** a few dozens more.
-*/
+ ** Initial size for the string table (must be power of 2).
+ ** The Lua core alone registers ~50 strings (reserved words +
+ ** metaevent keys + a few others). Libraries would typically add
+ ** a few dozens more.
+ */
 #if !defined(MINSTRTABSIZE)
 #define MINSTRTABSIZE	128
 #endif
 
 
 /*
-** Size of cache for strings in the API. 'N' is the number of
-** sets (better be a prime) and "M" is the size of each set (M == 1
-** makes a direct cache.)
-*/
+ ** Size of cache for strings in the API. 'N' is the number of
+ ** sets (better be a prime) and "M" is the size of each set (M == 1
+ ** makes a direct cache.)
+ */
 #if !defined(STRCACHE_N)
 #define STRCACHE_N		53
 #define STRCACHE_M		2
@@ -227,27 +227,27 @@ typedef l_uint32 Instruction;
 
 
 /*
-** macros that are executed whenever program enters the Lua core
-** ('lua_lock') and leaves the core ('lua_unlock')
-*/
+ ** macros that are executed whenever program enters the Lua core
+ ** ('lua_lock') and leaves the core ('lua_unlock')
+ */
 #if !defined(lua_lock)
 #define lua_lock(L)	((void) 0)
 #define lua_unlock(L)	((void) 0)
 #endif
 
 /*
-** macro executed during Lua functions at points where the
-** function can yield.
-*/
+ ** macro executed during Lua functions at points where the
+ ** function can yield.
+ */
 #if !defined(luai_threadyield)
 #define luai_threadyield(L)	{lua_unlock(L); lua_lock(L);}
 #endif
 
 
 /*
-** these macros allow user-specific actions when a thread is
-** created/deleted/resumed/yielded.
-*/
+ ** these macros allow user-specific actions when a thread is
+ ** created/deleted/resumed/yielded.
+ */
 #if !defined(luai_userstateopen)
 #define luai_userstateopen(L)		((void)L)
 #endif
@@ -275,8 +275,8 @@ typedef l_uint32 Instruction;
 
 
 /*
-** The luai_num* macros define the primitive operations over numbers.
-*/
+ ** The luai_num* macros define the primitive operations over numbers.
+ */
 
 /* floor division (defined as 'floor(a/b)') */
 #if !defined(luai_numidiv)
@@ -289,20 +289,20 @@ typedef l_uint32 Instruction;
 #endif
 
 /*
-** modulo: defined as 'a - floor(a/b)*b'; the direct computation
-** using this definition has several problems with rounding errors,
-** so it is better to use 'fmod'. 'fmod' gives the result of
-** 'a - trunc(a/b)*b', and therefore must be corrected when
-** 'trunc(a/b) ~= floor(a/b)'. That happens when the division has a
-** non-integer negative result: non-integer result is equivalent to
-** a non-zero remainder 'm'; negative result is equivalent to 'a' and
-** 'b' with different signs, or 'm' and 'b' with different signs
-** (as the result 'm' of 'fmod' has the same sign of 'a').
-*/
+ ** modulo: defined as 'a - floor(a/b)*b'; the direct computation
+ ** using this definition has several problems with rounding errors,
+ ** so it is better to use 'fmod'. 'fmod' gives the result of
+ ** 'a - trunc(a/b)*b', and therefore must be corrected when
+ ** 'trunc(a/b) ~= floor(a/b)'. That happens when the division has a
+ ** non-integer negative result: non-integer result is equivalent to
+ ** a non-zero remainder 'm'; negative result is equivalent to 'a' and
+ ** 'b' with different signs, or 'm' and 'b' with different signs
+ ** (as the result 'm' of 'fmod' has the same sign of 'a').
+ */
 #if !defined(luai_nummod)
 #define luai_nummod(L,a,b,m)  \
-  { (void)L; (m) = l_mathop(fmod)(a,b); \
-    if (((m) > 0) ? (b) < 0 : ((m) < 0 && (b) > 0)) (m) += (b); }
+{ (void)L; (m) = l_mathop(fmod)(a,b); \
+if (((m) > 0) ? (b) < 0 : ((m) < 0 && (b) > 0)) (m) += (b); }
 #endif
 
 /* exponentiation */
@@ -329,21 +329,21 @@ typedef l_uint32 Instruction;
 
 
 /*
-** macro to control inclusion of some hard tests on stack reallocation
-*/
+ ** macro to control inclusion of some hard tests on stack reallocation
+ */
 #if !defined(HARDSTACKTESTS)
 #define condmovestack(L,pre,pos)	((void)0)
 #else
 /* realloc stack keeping its size */
 #define condmovestack(L,pre,pos)  \
-  { int sz_ = (L)->stacksize; pre; luaD_reallocstack((L), sz_, 0); pos; }
+{ int sz_ = (L)->stacksize; pre; luaD_reallocstack((L), sz_, 0); pos; }
 #endif
 
 #if !defined(HARDMEMTESTS)
 #define condchangemem(L,pre,pos)	((void)0)
 #else
 #define condchangemem(L,pre,pos)  \
-	{ if (G(L)->gcrunning) { pre; luaC_fullgc(L, 0); pos; } }
+{ if (G(L)->gcrunning) { pre; luaC_fullgc(L, 0); pos; } }
 #endif
 
 #endif
