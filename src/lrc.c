@@ -40,7 +40,7 @@ l_mem luaRC_subref_object_internal(lua_State* L, GCObject* o)
             o->count--;
         }
         if (o->count == 0) {
-            if (cstl_set_exists(C_ensure_objects(), &o))
+            if (cstl_set_exists(luaRC_ensure_objects(), &o))
             {
                 cstl_set_remove(luaRC_ensure_objects(), &o);
             }
