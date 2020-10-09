@@ -34,13 +34,21 @@ struct cstl_set* luaRC_ensure_objects()
 l_mem luaRC_subref_object_internal(lua_State* L, GCObject* o)
 {
     l_mem c = 0;
-    if (!enable_gc && o!=0)
+    if (!enable_gc && o != 0)
     {
         if (o->count > 0) {
-            o->count -- ;
+            o->count--;
         }
         if (o->count == 0) {
-            cstl_set_remove(luaRC_ensure_objects(), &o);
+            if (cstl_set_exists(C_ensure_objects(), &o))
+            {
+                cstl_set_remove(luaRC_ensure_objects(), &o);
+            }
+            else 
+            {
+                //NOTICE: o is not in objects, this should not happen
+
+            }
         }
         else //fixed object with count = -1 
         {
