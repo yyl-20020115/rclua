@@ -265,9 +265,7 @@ GCObject* luaC_newobj(lua_State* L, int tt, size_t sz) {
         /*We have to initialize the count to 0 first, 
          *since malloc or realloc may return invalid data 
          * with count*/
-        o->count = 0;
-
-        luaRC_addref_object(L, o);
+       
         o->marked = luaC_white(g);
         o->tt = tt;
         if (enable_gc)
@@ -277,7 +275,8 @@ GCObject* luaC_newobj(lua_State* L, int tt, size_t sz) {
         }
         else
         {
-            o->next = 0;
+            o->count = 0;
+            luaRC_addref_object(L, o);
         }
     }
     return o;
