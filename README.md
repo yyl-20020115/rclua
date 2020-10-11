@@ -1,3 +1,5 @@
+NOTICE: STILL WORKING IN PROGRESS, PLEASE DO NOT USE!
+
 # rclua
 This is Lua 5.4.0, released on 18 Jun 2020.
 
