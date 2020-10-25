@@ -165,7 +165,7 @@ static int db_getinfo (lua_State *L) {
     }
     if (!lua_getinfo(L1, options, &ar))
         return luaL_argerror(L, arg+2, "invalid option");
-    lua_newtable(L);  /* table to collect results */
+    lua_newtable(L,0);  /* table to collect results */
     if (strchr(options, 'S')) {
         lua_pushlstring(L, ar.source, ar.srclen);
         lua_setfield(L, -2, "source");
@@ -367,7 +367,7 @@ static int db_sethook (lua_State *L) {
         count = (int)luaL_optinteger(L, arg + 3, 0);
         func = hookf; mask = makemask(smask, count);
     }
-    if (!luaL_getsubtable(L, LUA_REGISTRYINDEX, HOOKKEY)) {
+    if (!luaL_getsubtable(L, LUA_REGISTRYINDEX, HOOKKEY,1)) {
         /* table just created; initialize it */
         lua_pushstring(L, "k");
         lua_setfield(L, -2, "__mode");  /** hooktable.__mode = "k" */
@@ -471,7 +471,7 @@ static const luaL_Reg dblib[] = {
 
 
 LUAMOD_API int luaopen_debug (lua_State *L) {
-    luaL_newlib(L, dblib);
+    luaL_newlib(L, dblib,0);
     return 1;
 }
 

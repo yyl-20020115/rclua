@@ -1347,7 +1347,7 @@ tailcall:
                     c += GETARG_Ax(*pc) * (MAXARG_C + 1);  /* add it to size */
                 pc++;  /* skip extra argument */
                 L->top = ra + 1;  /* correct top in case of emergency GC */
-                t = luaH_new(L);  /* memory allocation */
+                t = luaH_new(L,0);  /* memory allocation */
                 /*RC:YILIN*/
                 sethvalue_subref(L, s2v(ra), t);
                 if (b != 0 || c != 0)

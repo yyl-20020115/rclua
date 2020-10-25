@@ -709,7 +709,7 @@ static void createsearcherstable (lua_State *L) {
     {searcher_preload, searcher_Lua, searcher_C, searcher_Croot, NULL};
     int i;
     /* create 'searchers' table */
-    lua_createtable(L, sizeof(searchers)/sizeof(searchers[0]) - 1, 0);
+    lua_createtable(L, sizeof(searchers)/sizeof(searchers[0]) - 1, 0,0);
     /* fill it with predefined searchers */
     for (i=0; searchers[i] != NULL; i++) {
         lua_pushvalue(L, -2);  /* set 'package' as upvalue for all searchers */
@@ -725,8 +725,8 @@ static void createsearcherstable (lua_State *L) {
  ** setting a finalizer to close all libraries when closing state.
  */
 static void createclibstable (lua_State *L) {
-    luaL_getsubtable(L, LUA_REGISTRYINDEX, CLIBS);  /* create CLIBS table */
-    lua_createtable(L, 0, 1);  /* create metatable for CLIBS */
+    luaL_getsubtable(L, LUA_REGISTRYINDEX, CLIBS,1);  /* create CLIBS table */
+    lua_createtable(L, 0, 1, 1);  /* create metatable for CLIBS */
     lua_pushcfunction(L, gctm);
     lua_setfield(L, -2, "__gc");  /* set finalizer for CLIBS table */
     lua_setmetatable(L, -2);
@@ -735,7 +735,7 @@ static void createclibstable (lua_State *L) {
 
 LUAMOD_API int luaopen_package (lua_State *L) {
     createclibstable(L);
-    luaL_newlib(L, pk_funcs);  /* create 'package' table */
+    luaL_newlib(L, pk_funcs,1);  /* create 'package' table */
     createsearcherstable(L);
     /* set paths */
     setpath(L, "path", LUA_PATH_VAR, LUA_PATH_DEFAULT);
@@ -745,10 +745,10 @@ LUAMOD_API int luaopen_package (lua_State *L) {
                     LUA_EXEC_DIR "\n" LUA_IGMARK "\n");
     lua_setfield(L, -2, "config");
     /* set field 'loaded' */
-    luaL_getsubtable(L, LUA_REGISTRYINDEX, LUA_LOADED_TABLE);
+    luaL_getsubtable(L, LUA_REGISTRYINDEX, LUA_LOADED_TABLE,1);
     lua_setfield(L, -2, "loaded");
     /* set field 'preload' */
-    luaL_getsubtable(L, LUA_REGISTRYINDEX, LUA_PRELOAD_TABLE);
+    luaL_getsubtable(L, LUA_REGISTRYINDEX, LUA_PRELOAD_TABLE,1);
     lua_setfield(L, -2, "preload");
     lua_pushglobaltable(L);
     lua_pushvalue(L, -2);  /* set 'package' as upvalue for next lib */

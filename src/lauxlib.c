@@ -308,11 +308,11 @@ LUALIB_API int luaL_execresult (lua_State *L, int stat) {
  ** =======================================================
  */
 
-LUALIB_API int luaL_newmetatable (lua_State *L, const char *tname) {
+LUALIB_API int luaL_newmetatable (lua_State *L, const char *tname, int fix) {
     if (luaL_getmetatable(L, tname) != LUA_TNIL)  /* name already in use? */
         return 0;  /* leave previous value on top, but return 0 */
     lua_pop(L, 1);
-    lua_createtable(L, 0, 2);  /* create metatable */
+    lua_createtable(L, 0, 2, fix);  /* create metatable */
     lua_pushstring(L, tname);
     lua_setfield(L, -2, "__name");  /* metatable.__name = tname */
     lua_pushvalue(L, -1);
@@ -500,7 +500,7 @@ static void newbox (lua_State *L) {
     UBox *box = (UBox *)lua_newuserdatauv(L, sizeof(UBox), 0);
     box->box = NULL;
     box->bsize = 0;
-    if (luaL_newmetatable(L, "_UBOX*"))  /* creating metatable? */
+    if (luaL_newmetatable(L, "_UBOX*", 0))  /* creating metatable? */
         luaL_setfuncs(L, boxmt, 0);  /* set its metamethods */
     lua_setmetatable(L, -2);
 }
@@ -920,13 +920,13 @@ LUALIB_API void luaL_setfuncs (lua_State *L, const luaL_Reg *l, int nup) {
  ** ensure that stack[idx][fname] has a table and push that table
  ** into the stack
  */
-LUALIB_API int luaL_getsubtable (lua_State *L, int idx, const char *fname) {
+LUALIB_API int luaL_getsubtable (lua_State *L, int idx, const char *fname, int fix) {
     if (lua_getfield(L, idx, fname) == LUA_TTABLE)
         return 1;  /* table already there */
     else {
         lua_pop(L, 1);  /* remove previous result */
         idx = lua_absindex(L, idx);
-        lua_newtable(L);
+        lua_newtable(L,fix);
         lua_pushvalue(L, -1);  /* copy to be left at top */
         lua_setfield(L, idx, fname);  /* assign new table to field */
         return 0;  /* false, because did not find table there */
@@ -941,8 +941,8 @@ LUALIB_API int luaL_getsubtable (lua_State *L, int idx, const char *fname) {
  ** Leaves resulting module on the top.
  */
 LUALIB_API void luaL_requiref (lua_State *L, const char *modname,
-                               lua_CFunction openf, int glb) {
-    luaL_getsubtable(L, LUA_REGISTRYINDEX, LUA_LOADED_TABLE);
+                               lua_CFunction openf, int glb, int fix) {
+    luaL_getsubtable(L, LUA_REGISTRYINDEX, LUA_LOADED_TABLE, fix);
     lua_getfield(L, -1, modname);  /* LOADED[modname] */
     if (!lua_toboolean(L, -1)) {  /* package not already loaded? */
         lua_pop(L, 1);  /* remove field */

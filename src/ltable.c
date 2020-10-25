@@ -581,11 +581,17 @@ static void rehash(lua_State* L, Table* t, const TValue* ek) {
  ** }=============================================================
  */
 
+extern int enable_gc;
 
-Table* luaH_new(lua_State* L) {
+Table* luaH_new(lua_State* L, int fix) {
     GCObject* o = luaC_newobj(L, LUA_VTABLE, sizeof(Table));
     Table* t = gco2t(o);
     if (t != 0) {
+        if (!enable_gc) {
+            if (fix) {
+                luaRC_fix_object(L, (GCObject*)t);
+            }
+        }
 
         t->metatable = NULL;
         t->flags = cast_byte(~0);
@@ -652,8 +658,9 @@ TValue* luaH_newkey(lua_State* L, Table* t, const TValue* key) {
         othern = mainposition(t, keytt(mp), &keyval(mp));
         if (othern != mp) {  /* is colliding node out of its main position? */
             /* yes; move colliding node into free position */
-            while (othern + gnext(othern) != mp)  /* find previous */
+            while (gnext(othern)!=0 && (othern + gnext(othern) != mp))  /* find previous */
                 othern += gnext(othern);
+
             gnext(othern) = cast_int(f - othern);  /* rechain to point to 'f' */
             *f = *mp;  /* copy colliding node into free pos. (mp->next also goes) */
             if (gnext(mp) != 0) {
@@ -734,7 +741,7 @@ const TValue* luaH_getstr(Table* t, TString* key) {
     if (key->tt == LUA_VSHRSTR)
         return luaH_getshortstr(t, key);
     else {  /* for long strings, use generic case */
-        TValue ko;
+        TValue ko = { 0 };
         setsvalue(cast(lua_State*, NULL), &ko, key);
         return getgeneric(t, &ko);
     }
@@ -782,7 +789,7 @@ void luaH_setint(lua_State* L, Table* t, lua_Integer key, TValue* value) {
         
     }
     else {
-        TValue k;
+        TValue k = { 0 };
         setivalue(&k, key);
         cell = luaH_newkey(L, t, &k);
     }

@@ -301,9 +301,9 @@ int luaRC_process_unlink_object(lua_State* L, GCObject* o, struct cstl_array* du
     return mc;
 }
 
-int luaRC_process_unlink_step(lua_State* L, struct cstl_iterator* i,struct cstl_array* dup_array, struct cstl_set* collecting)
+int luaRC_process_unlink_step(lua_State* L, GCObject* o,struct cstl_array* dup_array, struct cstl_set* collecting)
 {
-    return i != 0 ? luaRC_process_unlink_object(L, (GCObject*)(i->current_element), dup_array, collecting) : 0 ;
+    return o != 0 ? luaRC_process_unlink_object(L, o, dup_array, collecting) : 0 ;
 }
 
 int luaRC_process_unlink(lua_State* L, GCObject* m, struct cstl_set* collecting)
@@ -315,7 +315,7 @@ int luaRC_process_unlink(lua_State* L, GCObject* m, struct cstl_set* collecting)
         struct cstl_array* rcs_array = cstl_array_new(16, 0, 0);
         if (rcs_array != 0)
         {
-            cstl_array_push_back(rcs_array, &m, sizeof(void*));
+            cstl_array_push_back(rcs_array, (void*)&m, sizeof(void*));
             
             struct cstl_array* dup_array = cstl_array_new(cstl_array_size(rcs_array), 0, 0);
             
@@ -326,10 +326,10 @@ int luaRC_process_unlink(lua_State* L, GCObject* m, struct cstl_set* collecting)
                     int mc = 0;
                     struct cstl_iterator* i = cstl_array_new_iterator(rcs_array);                
                     if (i == 0) break;
-                    
-                    while (i->next(i) != 0)
+                    const void* ret = 0;
+                    while ((ret = i->next(i)) != 0)
                     {
-                        mc += luaRC_process_unlink_step(L, i, dup_array, collecting);
+                        mc += luaRC_process_unlink_step(L, **((GCObject***)ret), dup_array, collecting);
                     }
                     cstl_array_delete_iterator(i);
                     cstl_array_delete(rcs_array);
@@ -440,40 +440,43 @@ const char* luaRC_get_type_name(lu_byte tt) {
         return "LUA_UNKNOWN";
     }
 }
-void luaRC_deinit(lua_State* L)
+void luaRC_clears(lua_State* L)
+{
+    struct cstl_iterator* i = cstl_set_new_iterator(objects);
+    if (i != 0) {
+        while (i->next(i) != 0) {
+            GCObject* o = *(GCObject**)i->current_key(i);
+            if (o != 0) {
+                lu_byte tt = o->tt;
+                l_mem c = o->count;
+                char* ts = 0;
+#ifdef _DEBUG
+                if ((tt & 0xf) == LUA_TSTRING)
+                {
+                    size_t l = tsslen((TString*)o);
+                    if (l > 0) {
+                        ts = (char*)malloc((size_t)l + 1);
+                        if (ts != 0) {
+                            strncpy(ts, getstr((TString*)o), l);
+                            ts[l] = '\0';
+                        }
+                    }
+                }
+#endif
+                int d = freeobj(L, o);
+#ifdef _DEBUG
+                printf("(leakage) freeing object: %p, count=%d, type=%s: %s\n", o, (int)c, luaRC_get_type_name(tt), ts != 0 ? ts : "");
+#endif
+                if (ts != 0) free(ts);
+            }
+        }
+        cstl_set_delete_iterator(i);
+    }
+}
+void luaRC_deinit()
 {
     if (objects != 0)
     {
-        struct cstl_iterator* i = cstl_set_new_iterator(objects);
-        if (i != 0) {
-            while (i->next(i) != 0) {
-                GCObject* o = *(GCObject**)i->current_key(i);
-                if (o != 0) {
-                    lu_byte tt = o->tt;
-                    l_mem c = o->count;
-                    char* ts = 0;
-#ifdef _DEBUG
-                    if ((tt & 0xf) == LUA_TSTRING)
-                    {
-                        size_t l = tsslen((TString*)o);
-                        if (l > 0) {
-                            ts = (char*)malloc((size_t)l + 1);
-                            if (ts != 0) {
-                                strncpy(ts, getstr((TString*)o), l);
-                                ts[l] = '\0';
-                            }
-                        }
-                    }
-#endif
-                    int d = freeobj(L, o);
-#ifdef _DEBUG
-                    printf("(leakage) freeing object: %p, count=%d, type=%s: %s\n", o, (int)c, luaRC_get_type_name(tt), ts!=0 ? ts : "");
-#endif
-                    if (ts != 0) free(ts);
-                }
-            }
-            cstl_set_delete_iterator(i);
-        }
         cstl_set_delete(objects);
         objects = 0;
     }

@@ -743,10 +743,11 @@ LUA_API int lua_rawgetp(lua_State* L, int idx, const void* p) {
 
 extern int enable_gc;
 
-LUA_API void lua_createtable(lua_State* L, int narray, int nrec) {
+LUA_API void lua_createtable(lua_State* L, int narray, int nrec, int fix) {
     Table* t;
     lua_lock(L);
-    t = luaH_new(L);
+    t = luaH_new(L, fix);
+
     /*RC:YILIN*/
     sethvalue_subref(L, s2v(L->top), t);
 

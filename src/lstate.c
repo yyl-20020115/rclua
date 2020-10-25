@@ -254,17 +254,17 @@ static void freestack (lua_State *L) {
  ** Create registry table and its predefined values
  */
 static void init_registry (lua_State *L, global_State *g) {
-    TValue temp;
+    TValue t = { 0 };
     /* create registry */
-    Table *registry = luaH_new(L);
+    Table *registry = luaH_new(L,1);
     sethvalue(L, &g->l_registry, registry);
     luaH_resize(L, registry, LUA_RIDX_LAST, 0);
     /* registry[LUA_RIDX_MAINTHREAD] = L */
-    setthvalue(L, &temp, L);  /* temp = L */
-    luaH_setint(L, registry, LUA_RIDX_MAINTHREAD, &temp);
+    setthvalue(L, &t, L);  /* temp = L */
+    luaH_setint(L, registry, LUA_RIDX_MAINTHREAD, &t);
     /* registry[LUA_RIDX_GLOBALS] = table of globals */
-    sethvalue(L, &temp, luaH_new(L));  /* temp = new table (global table) */
-    luaH_setint(L, registry, LUA_RIDX_GLOBALS, &temp);
+    sethvalue(L, &t, luaH_new(L,1));  /* temp = new table (global table) */
+    luaH_setint(L, registry, LUA_RIDX_GLOBALS, &t);
 }
 
 
@@ -316,7 +316,7 @@ static void close_state (lua_State *L) {
     luaC_freeallobjects(L);  /* collect all objects */
     if (ttisnil(&g->nilvalue))  /* closing a fully built state? */
         luai_userstateclose(L);
-    luaRC_deinit(L);
+    luaRC_clears(L);
     luaM_freearray(L, G(L)->strt.hash, G(L)->strt.size);
     freestack(L);
     lua_assert(gettotalbytes(g) == sizeof(LG));

@@ -66,7 +66,7 @@ LUALIB_API void (luaL_checkstack) (lua_State *L, int sz, const char *msg);
 LUALIB_API void (luaL_checktype) (lua_State *L, int arg, int t);
 LUALIB_API void (luaL_checkany) (lua_State *L, int arg);
 
-LUALIB_API int   (luaL_newmetatable) (lua_State *L, const char *tname);
+LUALIB_API int   (luaL_newmetatable) (lua_State *L, const char *tname, int fix);
 LUALIB_API void  (luaL_setmetatable) (lua_State *L, const char *tname);
 LUALIB_API void *(luaL_testudata) (lua_State *L, int ud, const char *tname);
 LUALIB_API void *(luaL_checkudata) (lua_State *L, int ud, const char *tname);
@@ -108,13 +108,13 @@ LUALIB_API const char *(luaL_gsub) (lua_State *L, const char *s,
 
 LUALIB_API void (luaL_setfuncs) (lua_State *L, const luaL_Reg *l, int nup);
 
-LUALIB_API int (luaL_getsubtable) (lua_State *L, int idx, const char *fname);
+LUALIB_API int (luaL_getsubtable) (lua_State *L, int idx, const char *fname, int fix);
 
 LUALIB_API void (luaL_traceback) (lua_State *L, lua_State *L1,
                                   const char *msg, int level);
 
 LUALIB_API void (luaL_requiref) (lua_State *L, const char *modname,
-                                 lua_CFunction openf, int glb);
+                                 lua_CFunction openf, int glb, int fix);
 
 /*
  ** ===============================================================
@@ -123,11 +123,11 @@ LUALIB_API void (luaL_requiref) (lua_State *L, const char *modname,
  */
 
 
-#define luaL_newlibtable(L,l)	\
-lua_createtable(L, 0, sizeof(l)/sizeof((l)[0]) - 1)
+#define luaL_newlibtable(L,l,fix)	\
+lua_createtable(L, 0, sizeof(l)/sizeof((l)[0]) - 1,fix)
 
-#define luaL_newlib(L,l)  \
-(luaL_checkversion(L), luaL_newlibtable(L,l), luaL_setfuncs(L,l,0))
+#define luaL_newlib(L,l,fix)  \
+(luaL_checkversion(L), luaL_newlibtable(L,l,fix), luaL_setfuncs(L,l,0))
 
 #define luaL_argcheck(L, cond,arg,extramsg)	\
 ((void)((cond) || luaL_argerror(L, (arg), (extramsg))))

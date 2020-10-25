@@ -757,11 +757,11 @@ int freeobj (lua_State *L, GCObject *o) {
             done = 1;
             break;
         case LUA_VLCL:
-            luaM_freemem(L, o, sizeLclosure(gco2lcl(o)->nupvalues));
+            luaM_freemem(L, o, sizeLclosure((size_t)gco2lcl(o)->nupvalues));
             done = 1;
             break;
         case LUA_VCCL:
-            luaM_freemem(L, o, sizeCclosure(gco2ccl(o)->nupvalues));
+            luaM_freemem(L, o, sizeCclosure((size_t)gco2ccl(o)->nupvalues));
             done = 1;
             break;
         case LUA_VTABLE:
@@ -780,11 +780,11 @@ int freeobj (lua_State *L, GCObject *o) {
         }
         case LUA_VSHRSTR:
             luaS_remove(L, gco2ts(o));  /* remove it from hash table */
-            luaM_freemem(L, o, sizelstring(gco2ts(o)->shrlen));
+            luaM_freemem(L, o, sizelstring((size_t)gco2ts(o)->shrlen));
             done = 1;
             break;
         case LUA_VLNGSTR:
-            luaM_freemem(L, o, sizelstring(gco2ts(o)->u.lnglen));
+            luaM_freemem(L, o, sizelstring((size_t)gco2ts(o)->u.lnglen));
             done = 1;
             break;
         default: lua_assert(0);

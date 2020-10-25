@@ -150,10 +150,10 @@ extern const char lua_ident[];
 /*
  ** state manipulation
  */
-LUA_API lua_State *(lua_newstate) (lua_Alloc f, void *ud);
-LUA_API void       (lua_close) (lua_State *L);
-LUA_API lua_State *(lua_newthread) (lua_State *L);
-LUA_API int        (lua_resetthread) (lua_State *L);
+LUA_API lua_State * lua_newstate (lua_Alloc f, void *ud);
+LUA_API void        lua_close (lua_State *L);
+LUA_API lua_State * lua_newthread (lua_State *L);
+LUA_API int         lua_resetthread (lua_State *L);
 
 LUA_API lua_CFunction (lua_atpanic) (lua_State *L, lua_CFunction panicf);
 
@@ -255,7 +255,7 @@ LUA_API int (lua_rawget) (lua_State *L, int idx);
 LUA_API int (lua_rawgeti) (lua_State *L, int idx, lua_Integer n);
 LUA_API int (lua_rawgetp) (lua_State *L, int idx, const void *p);
 
-LUA_API void  (lua_createtable) (lua_State *L, int narr, int nrec);
+LUA_API void  (lua_createtable) (lua_State *L, int narr, int nrec, int fix);
 LUA_API void *(lua_newuserdatauv) (lua_State *L, size_t sz, int nuvalue);
 LUA_API int   (lua_getmetatable) (lua_State *L, int objindex);
 LUA_API int  (lua_getiuservalue) (lua_State *L, int idx, int n);
@@ -363,7 +363,7 @@ LUA_API void  (lua_toclose) (lua_State *L, int idx);
 
 #define lua_pop(L,n)		lua_settop(L, -(n)-1)
 
-#define lua_newtable(L)		lua_createtable(L, 0, 0)
+#define lua_newtable(L,fix)		lua_createtable(L, 0, 0,fix)
 
 #define lua_register(L,n,f) (lua_pushcfunction(L, (f)), lua_setglobal(L, (n)))
 

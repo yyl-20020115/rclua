@@ -320,7 +320,7 @@ static int os_date (lua_State *L) {
         return luaL_error(L,
                           "date result cannot be represented in this installation");
     if (strcmp(s, "*t") == 0) {
-        lua_createtable(L, 0, 9);  /* 9 = number of fields */
+        lua_createtable(L, 0, 9,0);  /* 9 = number of fields */
         setallfields(L, stm);
     }
     else {
@@ -427,7 +427,7 @@ static const luaL_Reg syslib[] = {
 
 
 LUAMOD_API int luaopen_os (lua_State *L) {
-    luaL_newlib(L, syslib);
+    luaL_newlib(L, syslib,1);
     return 1;
 }
 

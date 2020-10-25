@@ -281,7 +281,7 @@ static const luaL_Reg funcs[] = {
 
 
 LUAMOD_API int luaopen_utf8 (lua_State *L) {
-    luaL_newlib(L, funcs);
+    luaL_newlib(L, funcs,1);
     lua_pushlstring(L, UTF8PATT, sizeof(UTF8PATT)/sizeof(char) - 1);
     lua_setfield(L, -2, "charpattern");
     return 1;

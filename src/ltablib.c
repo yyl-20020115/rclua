@@ -180,7 +180,7 @@ static int tconcat (lua_State *L) {
 static int tpack (lua_State *L) {
     int i;
     int n = lua_gettop(L);  /* number of elements to pack */
-    lua_createtable(L, n, 1);  /* create result table */
+    lua_createtable(L, n, 1,0);  /* create result table */
     lua_insert(L, 1);  /* put it at index 1 */
     for (i = n; i >= 1; i--)  /* assign elements */
     lua_seti(L, 1, i);
@@ -422,7 +422,7 @@ static const luaL_Reg tab_funcs[] = {
 
 
 LUAMOD_API int luaopen_table (lua_State *L) {
-    luaL_newlib(L, tab_funcs);
+    luaL_newlib(L, tab_funcs,1);
     return 1;
 }
 

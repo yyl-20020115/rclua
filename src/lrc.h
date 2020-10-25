@@ -41,8 +41,8 @@ typedef struct TValue {
 typedef struct GCObject {
     CommonHeader;
 } GCObject;
-
-void luaRC_deinit(lua_State* L);
+void luaRC_clears(lua_State* L);
+void luaRC_deinit();
 
 l_mem luaRC_fix_object(lua_State* L, GCObject* o);
 l_mem luaRC_addref_object(lua_State* L, GCObject* o);

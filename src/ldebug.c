@@ -308,7 +308,7 @@ static void collectvalidlines(lua_State* L, Closure* f) {
         TValue v;
         const Proto* p = f->l.p;
         int currentline = p->linedefined;
-        Table* t = luaH_new(L);  /* new table to store active lines */
+        Table* t = luaH_new(L,0);  /* new table to store active lines */
         sethvalue2s(L, L->top, t);  /* push it on stack */
         api_incr_top(L);
         setbtvalue(&v);  /* boolean 'true' to be the value of all indices */

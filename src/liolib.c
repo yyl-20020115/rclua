@@ -767,10 +767,10 @@ static const luaL_Reg metameth[] = {
 };
 
 
-static void createmeta (lua_State *L) {
-    luaL_newmetatable(L, LUA_FILEHANDLE);  /* metatable for file handles */
+static void createmeta (lua_State *L, int fix) {
+    luaL_newmetatable(L, LUA_FILEHANDLE, fix);  /* metatable for file handles */
     luaL_setfuncs(L, metameth, 0);  /* add metamethods to new metatable */
-    luaL_newlibtable(L, meth);  /* create method table */
+    luaL_newlibtable(L, meth, fix);  /* create method table */
     luaL_setfuncs(L, meth, 0);  /* add file methods to method table */
     lua_setfield(L, -2, "__index");  /* metatable.__index = method table */
     lua_pop(L, 1);  /* pop metatable */
@@ -803,8 +803,8 @@ static void createstdfile (lua_State *L, FILE *f, const char *k,
 
 
 LUAMOD_API int luaopen_io (lua_State *L) {
-    luaL_newlib(L, iolib);  /* new module */
-    createmeta(L);
+    luaL_newlib(L, iolib,1);  /* new module */
+    createmeta(L,1);
     /* create (and set) default files */
     createstdfile(L, stdin, IO_INPUT, "stdin");
     createstdfile(L, stdout, IO_OUTPUT, "stdout");
