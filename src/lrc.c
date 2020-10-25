@@ -410,8 +410,7 @@ l_mem luaRC_subref_object(lua_State* L, GCObject* o)
     return c;
 }
 const char* luaRC_get_type_name(lu_byte tt) {
-    static char buffer[256] = { 0 };
-    if (tt == -1) {
+     if (tt ==0xff) {
         return "LUA_TNONE";
     }
     else switch (tt&0x0f) {
@@ -438,8 +437,7 @@ const char* luaRC_get_type_name(lu_byte tt) {
     case LUA_TPROTO:
         return "LUA_TPROTO";
     default:
-        _snprintf(buffer, sizeof(buffer), "LUA_UNKNOWN(%02X)", tt);
-        return buffer;
+        return "LUA_UNKNOWN";
     }
 }
 void luaRC_deinit(lua_State* L)
@@ -454,7 +452,7 @@ void luaRC_deinit(lua_State* L)
                     lu_byte tt = o->tt;
                     l_mem c = o->count;
                     char* ts = 0;
-                    
+#ifdef _DEBUG
                     if ((tt & 0xf) == LUA_TSTRING)
                     {
                         size_t l = tsslen((TString*)o);
@@ -466,6 +464,7 @@ void luaRC_deinit(lua_State* L)
                             }
                         }
                     }
+#endif
                     int d = freeobj(L, o);
 #ifdef _DEBUG
                     printf("(leakage) freeing object: %p, count=%d, type=%s: %s\n", o, (int)c, luaRC_get_type_name(tt), ts!=0 ? ts : "");
