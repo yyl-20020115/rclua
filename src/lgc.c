@@ -455,7 +455,7 @@ static int traverseephemeron (global_State *g, Table *h, int inv) {
     int hasww = 0;  /* true if table has entry "white-key -> white-value" */
     unsigned int i;
     unsigned int asize = luaH_realasize(h);
-    unsigned int nsize = sizenode(h);
+    size_t nsize = sizenode(h);
     /* traverse array part */
     for (i = 0; i < asize; i++) {
         if (valiswhite(&h->array[i])) {

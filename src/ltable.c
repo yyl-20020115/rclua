@@ -413,7 +413,7 @@ static unsigned int numusearray(const Table* t, unsigned int* nums) {
 static int numusehash(const Table* t, unsigned int* nums, unsigned int* pna) {
     int totaluse = 0;  /* total number of elements */
     int ause = 0;  /* elements added to 'nums' (can go to array part) */
-    int i = sizenode(t);
+    size_t i = sizenode(t);
     while (i--) {
         Node* n = &t->node[i];
         if (!isempty(gval(n))) {
@@ -445,7 +445,7 @@ static void setnodevector(lua_State* L, Table* t, unsigned int size) {
         int lsize = luaO_ceillog2(size);
         if (lsize > MAXHBITS || (1u << lsize) > MAXHSIZE)
             luaG_runerror(L, "table overflow");
-        size = twoto(lsize);
+        size = (unsigned)twoto(lsize);
         t->node = luaM_newvector(L, size, Node);
         for (i = 0; i < (int)size; i++) {
             Node* n = gnode(t, i);
@@ -464,7 +464,7 @@ static void setnodevector(lua_State* L, Table* t, unsigned int size) {
  */
 static void reinsert(lua_State* L, Table* ot, Table* t) {
     int j;
-    int size = sizenode(ot);
+    size_t size = sizenode(ot);
     for (j = 0; j < size; j++) {
         Node* old = gnode(ot, j);
         if (!isempty(gval(old))) {
@@ -547,7 +547,7 @@ void luaH_resize(lua_State* L, Table* t, unsigned int newasize,
 
 
 void luaH_resizearray(lua_State* L, Table* t, unsigned int nasize) {
-    int nsize = allocsizenode(t);
+    unsigned int nsize = (unsigned int)allocsizenode(t);
     luaH_resize(L, t, nasize, nsize);
 }
 

@@ -408,7 +408,7 @@ void luaRC_clears(lua_State* L)
         }
     }
 }
-void luaRC_deinit()
+void luaRC_deinit(void)
 {
     if (objects != 0) {
         cstl_set_delete(objects);
