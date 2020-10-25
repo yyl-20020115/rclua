@@ -583,13 +583,3 @@ void luaO_chunkid (char *out, const char *source, size_t srclen) {
         memcpy(out, POS, (LL(POS) + 1) * sizeof(char));
     }
 }
-#if 0
-int rangeisnil(const TValue* begin, const TValue* end) {
-    const TValue* p;
-    for (p = begin; p < end; p++) {
-        if (!ttisnil(p))
-            return 0;
-    }
-    return 1;
-}
-#endif

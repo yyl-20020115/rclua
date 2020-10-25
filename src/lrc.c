@@ -40,15 +40,15 @@ l_mem luaRC_subref_object_internal(lua_State* L, GCObject* o)
             o->count--;
         }
         if (o->count == 0) {
-            if (cstl_set_exists(luaRC_ensure_objects(), &o))
-            {
-                cstl_set_remove(luaRC_ensure_objects(), &o);
-            }
-            else 
-            {
-                //NOTICE: o is not in objects, this should not happen
+            //if (cstl_set_exists(luaRC_ensure_objects(), &o))
+            //{
+            //    cstl_set_remove(luaRC_ensure_objects(), &o);
+            //}
+            //else 
+            //{
+            //    //NOTICE: o is not in objects, this should not happen
 
-            }
+            //}
         }
         else //fixed object with count = -1 
         {
@@ -358,6 +358,8 @@ int luaRC_collect(lua_State* L, struct cstl_set* collecting)
             while (i->next(i) != 0) {
                 GCObject* o = *(GCObject**)(i->current_key(i));
                 if (o != 0) {
+                    //remove from objects first
+                    cstl_set_remove(luaRC_ensure_objects(), &o);
                     freeobj(L, o);
                 }
             }

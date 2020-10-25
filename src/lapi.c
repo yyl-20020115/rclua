@@ -187,12 +187,13 @@ LUA_API void lua_settop(lua_State* L, int idx) {
         api_check(L, -(idx + 1) <= (L->top - (func + 1)), "invalid new top");
         /*RC:YILIN*/
         int cidx = idx;
+        int didx = -idx;
         while (++cidx < 0)
         {
             --L->top;
             setnilvalue_subref(L, s2v(L->top));
         }
-        L->top += cidx;
+        L->top += didx-1;
         
         diff = idx + 1;  /* will "subtract" index (as it is negative) */
     }
@@ -740,6 +741,7 @@ LUA_API int lua_rawgetp(lua_State* L, int idx, const void* p) {
     return finishrawget(L, luaH_get(t, &k));
 }
 
+extern int enable_gc;
 
 LUA_API void lua_createtable(lua_State* L, int narray, int nrec) {
     Table* t;
@@ -747,6 +749,13 @@ LUA_API void lua_createtable(lua_State* L, int narray, int nrec) {
     t = luaH_new(L);
     /*RC:YILIN*/
     sethvalue_subref(L, s2v(L->top), t);
+
+    if (!enable_gc)
+    {
+        /*RC:YILIN*/
+        /*MAKE TABLE COLLECTABLE AT BEGINNING*/
+        s2v(L->top)->tt_ |= BIT_ISCOLLECTABLE;
+    }
     api_incr_top(L);
     if (narray > 0 || nrec > 0)
         luaH_resize(L, t, narray, nrec);

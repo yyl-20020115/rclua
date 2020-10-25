@@ -622,11 +622,12 @@ static int pmain (lua_State *L) {
 }
 
 
-int main (int argc, char **argv) 
+int main(int argc, char **argv) 
 {
 #ifdef _WIN32
 #ifdef _DEBUG
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    //_CrtSetBreakAlloc(356);
 #endif
 #endif
     int status = 0, result = 0;

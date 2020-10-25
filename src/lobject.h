@@ -19,8 +19,8 @@
 /*
  ** Extra types for collectable non-values
  */
-#define LUA_TUPVAL	LUA_NUMTYPES  /* upvalues */
-#define LUA_TPROTO	(LUA_NUMTYPES+1)  /* function prototypes */
+#define LUA_TUPVAL	LUA_NUMTYPES  /* upvalues 0x09*/
+#define LUA_TPROTO	(LUA_NUMTYPES+1)  /* function prototypes 0x0A*/
 
 
 /*
@@ -130,13 +130,13 @@ typedef StackValue *StkId;
  ** ===================================================================
  */
 
-/* Standard nil */
+/* Standard nil 0x00*/
 #define LUA_VNIL	makevariant(LUA_TNIL, 0)
 
-/* Empty slot (which might be different from a slot containing nil) */
+/* Empty slot (which might be different from a slot containing nil) 0x10*/
 #define LUA_VEMPTY	makevariant(LUA_TNIL, 1)
 
-/* Value returned for a key not found in a table (absent key) */
+/* Value returned for a key not found in a table (absent key) 0x20*/
 #define LUA_VABSTKEY	makevariant(LUA_TNIL, 2)
 
 
@@ -186,8 +186,9 @@ typedef StackValue *StkId;
  ** ===================================================================
  */
 
-
+/*0x01*/
 #define LUA_VFALSE	makevariant(LUA_TBOOLEAN, 0)
+/*0x11*/
 #define LUA_VTRUE	makevariant(LUA_TBOOLEAN, 1)
 
 #define ttisboolean(o)		checktype((o), LUA_TBOOLEAN)
@@ -220,7 +221,7 @@ luaRC_subref(L,&dup); }
  ** Threads
  ** ===================================================================
  */
-
+/*0x08*/
 #define LUA_VTHREAD		makevariant(LUA_TTHREAD, 0)
 
 #define ttisthread(o)		checktag((o), ctb(LUA_VTHREAD))
@@ -264,8 +265,8 @@ val_(io).gc = i_g; settt_(io, ctb(i_g->tt)); }
  */
 
 /* Variant tags for numbers */
-#define LUA_VNUMINT	makevariant(LUA_TNUMBER, 0)  /* integer numbers */
-#define LUA_VNUMFLT	makevariant(LUA_TNUMBER, 1)  /* float numbers */
+#define LUA_VNUMINT	makevariant(LUA_TNUMBER, 0)  /* integer numbers 0x03*/
+#define LUA_VNUMFLT	makevariant(LUA_TNUMBER, 1)  /* float numbers 0x13*/
 
 #define ttisnumber(o)		checktype((o), LUA_TNUMBER)
 #define ttisfloat(o)		checktag((o), LUA_VNUMFLT)
@@ -301,8 +302,8 @@ val_(io).gc = i_g; settt_(io, ctb(i_g->tt)); }
  */
 
 /* Variant tags for strings */
-#define LUA_VSHRSTR	makevariant(LUA_TSTRING, 0)  /* short strings */
-#define LUA_VLNGSTR	makevariant(LUA_TSTRING, 1)  /* long strings */
+#define LUA_VSHRSTR	makevariant(LUA_TSTRING, 0)  /* short strings 0x04*/
+#define LUA_VLNGSTR	makevariant(LUA_TSTRING, 1)  /* long strings 0x14*/
 
 #define ttisstring(o)		checktype((o), LUA_TSTRING)
 #define ttisshrstring(o)	checktag((o), ctb(LUA_VSHRSTR))
@@ -370,8 +371,9 @@ typedef struct TString {
  ** Light userdata should be a variant of userdata, but for compatibility
  ** reasons they are also different types.
  */
+/*0x02*/
 #define LUA_VLIGHTUSERDATA	makevariant(LUA_TLIGHTUSERDATA, 0)
-
+/*0x07*/
 #define LUA_VUSERDATA		makevariant(LUA_TUSERDATA, 0)
 
 #define ttislightuserdata(o)	checktag((o), LUA_VLIGHTUSERDATA)
@@ -526,14 +528,14 @@ typedef struct Proto {
  ** Closures
  ** ===================================================================
  */
-
+/*0x09*/
 #define LUA_VUPVAL	makevariant(LUA_TUPVAL, 0)
 
 
 /* Variant tags for functions */
-#define LUA_VLCL	makevariant(LUA_TFUNCTION, 0)  /* Lua closure */
-#define LUA_VLCF	makevariant(LUA_TFUNCTION, 1)  /* light C function */
-#define LUA_VCCL	makevariant(LUA_TFUNCTION, 2)  /* C closure */
+#define LUA_VLCL	makevariant(LUA_TFUNCTION, 0)  /* Lua closure 0x06*/
+#define LUA_VLCF	makevariant(LUA_TFUNCTION, 1)  /* light C function 0x16*/
+#define LUA_VCCL	makevariant(LUA_TFUNCTION, 2)  /* C closure 0x26*/
 
 #define ttisfunction(o)		checktype(o, LUA_TFUNCTION)
 #define ttisclosure(o)		((rawtt(o) & 0x1F) == LUA_VLCL)
@@ -617,7 +619,7 @@ typedef union Closure {
  ** Tables
  ** ===================================================================
  */
-
+/*0x05*/
 #define LUA_VTABLE	makevariant(LUA_TTABLE, 0)
 
 #define ttistable(o)		checktag((o), ctb(LUA_VTABLE))

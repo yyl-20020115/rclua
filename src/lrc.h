@@ -34,7 +34,7 @@ typedef struct TValue {
  ** Common Header for all collectable objects (in macro form, to be
  ** included in other objects)
  */
-#define CommonHeader	union{struct GCObject *next; l_mem count;}; lu_byte tt; lu_byte marked
+#define CommonHeader	struct GCObject *next; l_mem count; lu_byte tt; lu_byte marked
 
 
 /* Common type for all collectable objects */
@@ -52,7 +52,7 @@ l_mem luaRC_fix(lua_State* L, TValue* d);
 l_mem luaRC_addref(lua_State* L, TValue* d);
 l_mem luaRC_subref(lua_State* L, TValue* d);
 
-#define is_collectable(tt) (((tt == LUA_VLCL) || (tt == LUA_VCCL) || ((tt & 0x0f) >= LUA_TSTRING)))
+#define is_collectable(tt) (((tt == LUA_VLCL) || (tt == LUA_VCCL) || (tt!=LUA_VLCF && ((tt & 0x0f) >= LUA_TSTRING))))
 
 /* Macros to set values */
 #define setclCvalue_subref(L,obj,x) \
