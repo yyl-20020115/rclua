@@ -262,12 +262,13 @@ GCObject* luaC_newobj(lua_State* L, int tt, size_t sz) {
     GCObject* o = cast(GCObject*, luaM_newobject(L, novariant(tt), sz));
     if (o != NULL)
     {
+        memset(o, 0, sz);
         /*We have to initialize the count to 0 first, 
          *since malloc or realloc may return invalid data 
          * with count*/
         
         o->marked = luaC_white(g);
-        o->tt = tt;
+        o->tt = (lu_byte)tt;
         if (enable_gc)
         {
             o->next = g->allgc;

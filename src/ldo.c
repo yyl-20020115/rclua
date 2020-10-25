@@ -200,7 +200,7 @@ int luaD_reallocstack(lua_State* L, int newsize, int raiseerror) {
     for (; lim < newsize; lim++)
     {
         *(newstack + lim) = empty;
-        setnilvalue(s2v(newstack + lim)); /* erase new segment */
+        //setnilvalue(s2v(newstack + lim)); /* erase new segment */
     }
     correctstack(L, L->stack, newstack);
     L->stack = newstack;

@@ -222,7 +222,7 @@ static void stack_init (lua_State *L1, lua_State *L) {
     for (i = 0; i < BASIC_STACK_SIZE; i++)
     {
         *(L1->stack + i) = empty;
-        setnilvalue(s2v(L1->stack + i));  /* erase new stack */
+        //setnilvalue(s2v(L1->stack + i));  /* erase new stack */
     }
     L1->top = L1->stack;
     L1->stack_last = L1->stack + L1->stacksize - EXTRA_STACK;
@@ -394,6 +394,8 @@ LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
     global_State *g;
     LG *l = cast(LG *, (*f)(ud, NULL, LUA_TTHREAD, sizeof(LG)));
     if (l == NULL) return NULL;
+    /*RC:YILIN:FIXED*/
+    memset(l, 0, sizeof(LG));
     L = &l->l.l;
     g = &l->g;
     L->tt = LUA_VTHREAD;

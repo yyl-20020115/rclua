@@ -212,10 +212,10 @@ LUA_API void lua_settop(lua_State* L, int idx) {
  */
 static void reverse(lua_State* L, StkId from, StkId to) {
     for (; from < to; from++, to--) {
-        TValue temp;
-        setobj(L, &temp, s2v(from));
+        TValue t = { 0 };
+        setobj(L, &t, s2v(from));
         setobjs2s(L, from, to);
-        setobj2s(L, to, &temp);
+        setobj2s(L, to, &t);
     }
 }
 
@@ -924,10 +924,11 @@ LUA_API void lua_rawseti(lua_State* L, int idx, lua_Integer n) {
     lua_lock(L);
     api_checknelems(L, 1);
     t = gettable(L, idx);
+    /*RC:YILIN*/
+    //TODO: check 
+    //setnilvalue_subref(L, s2v(L->top - 1));
     luaH_setint(L, t, n, s2v(L->top - 1));
     luaC_barrierback(L, obj2gco(t), s2v(L->top - 1));
-    /*RC:YILIN*/
-    setnilvalue_subref(L, s2v(L->top - 1));
     L->top--;
     lua_unlock(L);
 }

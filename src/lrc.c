@@ -8,6 +8,8 @@
 #include "ltable.h"
 #include "lrc.h"
 
+#include <string.h>
+
 #ifdef _DEBUG
 #include <stdio.h>
 #endif
@@ -407,6 +409,39 @@ l_mem luaRC_subref_object(lua_State* L, GCObject* o)
     }
     return c;
 }
+const char* luaRC_get_type_name(lu_byte tt) {
+    static char buffer[256] = { 0 };
+    if (tt == -1) {
+        return "LUA_TNONE";
+    }
+    else switch (tt&0x0f) {
+    case  LUA_TNIL:
+        return "LUA_TNIL";
+    case  LUA_TBOOLEAN:
+        return "LUA_TBOOLEAN";
+    case  LUA_TLIGHTUSERDATA:
+        return "LUA_TLIGHTUSERDATA";
+    case  LUA_TNUMBER:
+        return "LUA_TNUMBER";
+    case  LUA_TSTRING:
+        return "LUA_TSTRING";
+    case  LUA_TTABLE:
+        return "LUA_TTABLE";
+    case  LUA_TFUNCTION:
+        return "LUA_TFUNCTION";
+    case  LUA_TUSERDATA:
+        return "LUA_TUSERDATA";
+    case  LUA_TTHREAD:
+        return "LUA_TTHREAD";
+    case LUA_TUPVAL:
+        return "LUA_TUPVAL";
+    case LUA_TPROTO:
+        return "LUA_TPROTO";
+    default:
+        _snprintf(buffer, sizeof(buffer), "LUA_UNKNOWN(%02X)", tt);
+        return buffer;
+    }
+}
 void luaRC_deinit(lua_State* L)
 {
     if (objects != 0)
@@ -416,11 +451,26 @@ void luaRC_deinit(lua_State* L)
             while (i->next(i) != 0) {
                 GCObject* o = *(GCObject**)i->current_key(i);
                 if (o != 0) {
+                    lu_byte tt = o->tt;
                     l_mem c = o->count;
+                    char* ts = 0;
+                    
+                    if ((tt & 0xf) == LUA_TSTRING)
+                    {
+                        size_t l = tsslen((TString*)o);
+                        if (l > 0) {
+                            ts = (char*)malloc((size_t)l + 1);
+                            if (ts != 0) {
+                                strncpy(ts, getstr((TString*)o), l);
+                                ts[l] = '\0';
+                            }
+                        }
+                    }
                     int d = freeobj(L, o);
 #ifdef _DEBUG
-                    printf("(leakage) freeing object: %p, count=%d, %s\n", o, (int)c, (d?"FREED":"LEAKED"));
+                    printf("(leakage) freeing object: %p, count=%d, type=%s: %s\n", o, (int)c, luaRC_get_type_name(tt), ts!=0 ? ts : "");
 #endif
+                    if (ts != 0) free(ts);
                 }
             }
             cstl_set_delete_iterator(i);
