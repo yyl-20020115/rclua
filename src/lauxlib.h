@@ -97,9 +97,9 @@ LUALIB_API int (luaL_loadbufferx) (lua_State *L, const char *buff, size_t sz,
                                    const char *name, const char *mode);
 LUALIB_API int (luaL_loadstring) (lua_State *L, const char *s);
 
-LUALIB_API lua_State *(luaL_newstate) (void);
+LUALIB_API lua_State *luaL_newstate(void);
 
-LUALIB_API lua_Integer (luaL_len) (lua_State *L, int idx);
+LUALIB_API lua_Integer luaL_len(lua_State *L, int idx);
 
 LUALIB_API void luaL_addgsub (luaL_Buffer *b, const char *s,
                               const char *p, const char *r);

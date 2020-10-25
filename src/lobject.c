@@ -477,14 +477,14 @@ const char *luaO_pushvfstring (lua_State *L, const char *fmt, va_list argp) {
                 break;
             }
             case 'd': {  /* an 'int' */
-                TValue num;
+                TValue num = { 0 };
                 /*RC:YILIN*/
                 setivalue_subref(L, &num, va_arg(argp, int));
                 addnum2buff(&buff, &num);
                 break;
             }
             case 'I': {  /* a 'lua_Integer' */
-                TValue num;
+                TValue num = { 0 };
                 /*RC:YILIN*/
                 setivalue_subref(L, &num, cast(lua_Integer, va_arg(argp, l_uacInt)));
                 addnum2buff(&buff, &num);
@@ -492,7 +492,7 @@ const char *luaO_pushvfstring (lua_State *L, const char *fmt, va_list argp) {
             }
             case 'f': {  /* a 'lua_Number' */
                 /*RC:YILIN*/
-                TValue num;
+                TValue num = { 0 };
                 setfltvalue_subref(L, &num, cast_num(va_arg(argp, l_uacNumber)));
                 addnum2buff(&buff, &num);
                 break;
@@ -506,7 +506,7 @@ const char *luaO_pushvfstring (lua_State *L, const char *fmt, va_list argp) {
                 break;
             }
             case 'U': {  /* a 'long' as a UTF-8 sequence */
-                char bf[UTF8BUFFSZ];
+                char bf[UTF8BUFFSZ] = { 0 };
                 int len = luaO_utf8esc(bf, va_arg(argp, long));
                 addstr2buff(&buff, bf + UTF8BUFFSZ - len, len);
                 break;
