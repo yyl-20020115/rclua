@@ -34,12 +34,12 @@
 #define noLuaClosure(f)		((f) == NULL || (f)->c.tt == LUA_VCCL)
 
 
-/* Active Lua function (given call info) */
+ /* Active Lua function (given call info) */
 #define ci_func(ci)		(clLvalue(s2v((ci)->func)))
 
 
 static const char* funcnamefromcode(lua_State* L, CallInfo* ci,
-                                    const char** name);
+    const char** name);
 
 
 static int currentpc(CallInfo* ci) {
@@ -61,7 +61,7 @@ static int getbaseline(const Proto* f, int pc, int* basepc) {
         return f->linedefined;
     }
     else {
-        unsigned int i=0;
+        unsigned int i = 0;
         if (pc >= f->abslineinfo[f->sizeabslineinfo - 1].pc)
             i = f->sizeabslineinfo - 1;  /* instruction is after last saved one */
         else {  /* binary search */
@@ -90,7 +90,7 @@ int luaG_getfuncline(const Proto* f, int pc) {
     if (f->lineinfo == NULL)  /* no debug information? */
         return -1;
     else {
-        int basepc=0;
+        int basepc = 0;
         int baseline = getbaseline(f, pc, &basepc);
         while (basepc++ < pc) {  /* walk until given instruction */
             lua_assert(f->lineinfo[basepc] != ABSLINEINFO);
@@ -119,8 +119,8 @@ static int getcurrentline(CallInfo* ci) {
  */
 static void settraps(CallInfo* ci) {
     for (; ci != NULL; ci = ci->previous)
-    if (isLua(ci))
-        ci->u.l.trap = 1;
+        if (isLua(ci))
+            ci->u.l.trap = 1;
 }
 
 
@@ -166,12 +166,12 @@ LUA_API int lua_gethookcount(lua_State* L) {
 
 
 LUA_API int lua_getstack(lua_State* L, int level, lua_Debug* ar) {
-    int status=0;
-    CallInfo* ci=0;
+    int status = 0;
+    CallInfo* ci = 0;
     if (level < 0) return 0;  /* invalid (negative) level */
     lua_lock(L);
     for (ci = L->ci; level > 0 && ci != &L->base_ci; ci = ci->previous)
-    level--;
+        level--;
     if (level == 0 && ci != &L->base_ci) {  /* level found? */
         status = 1;
         ar->i_ci = ci;
@@ -226,7 +226,7 @@ const char* luaG_findlocal(lua_State* L, CallInfo* ci, int n, StkId* pos) {
 
 
 LUA_API const char* lua_getlocal(lua_State* L, const lua_Debug* ar, int n) {
-    const char* name=0;
+    const char* name = 0;
     lua_lock(L);
     if (ar == NULL) {  /* information about non-active function? */
         if (!isLfunction(s2v(L->top - 1)))  /* not a Lua function? */
@@ -249,14 +249,14 @@ LUA_API const char* lua_getlocal(lua_State* L, const lua_Debug* ar, int n) {
 
 LUA_API const char* lua_setlocal(lua_State* L, const lua_Debug* ar, int n) {
     StkId pos = NULL;  /* to avoid warnings */
-    const char* name=0;
+    const char* name = 0;
     lua_lock(L);
     name = luaG_findlocal(L, ar->i_ci, n, &pos);
     if (name) {
         /*RC:YILIN*/
         setnilvalue_subref(L, s2v(pos));
         setobjs2s(L, pos, L->top - 1);
-        
+
         L->top--;  /* pop value */
     }
     lua_unlock(L);
@@ -305,11 +305,11 @@ static void collectvalidlines(lua_State* L, Closure* f) {
         api_incr_top(L);
     }
     else {
-        int i=0;
-        TValue v={0};
+        int i = 0;
+        TValue v = { 0 };
         const Proto* p = f->l.p;
         int currentline = p->linedefined;
-        Table* t = luaH_new(L,0);  /* new table to store active lines */
+        Table* t = luaH_new(L, 0);  /* new table to store active lines */
         /*RC:YILIN*/
         sethvalue_subref(L, s2v(L->top), (GCObject*)t);
         //sethvalue2s(L, L->top, t);  /* push it on stack */
@@ -338,55 +338,55 @@ static const char* getfuncname(lua_State* L, CallInfo* ci, const char** name) {
 
 
 static int auxgetinfo(lua_State* L, const char* what, lua_Debug* ar,
-                      Closure* f, CallInfo* ci) {
+    Closure* f, CallInfo* ci) {
     int status = 1;
     for (; *what; what++) {
         switch (*what) {
-            case 'S': {
-                funcinfo(ar, f);
-                break;
+        case 'S': {
+            funcinfo(ar, f);
+            break;
+        }
+        case 'l': {
+            ar->currentline = (ci && isLua(ci)) ? getcurrentline(ci) : -1;
+            break;
+        }
+        case 'u': {
+            ar->nups = (f == NULL) ? 0 : f->c.nupvalues;
+            if (noLuaClosure(f)) {
+                ar->isvararg = 1;
+                ar->nparams = 0;
             }
-            case 'l': {
-                ar->currentline = (ci && isLua(ci)) ? getcurrentline(ci) : -1;
-                break;
+            else {
+                ar->isvararg = f->l.p->is_vararg;
+                ar->nparams = f->l.p->numparams;
             }
-            case 'u': {
-                ar->nups = (f == NULL) ? 0 : f->c.nupvalues;
-                if (noLuaClosure(f)) {
-                    ar->isvararg = 1;
-                    ar->nparams = 0;
-                }
-                else {
-                    ar->isvararg = f->l.p->is_vararg;
-                    ar->nparams = f->l.p->numparams;
-                }
-                break;
+            break;
+        }
+        case 't': {
+            ar->istailcall = (ci) ? ci->callstatus & CIST_TAIL : 0;
+            break;
+        }
+        case 'n': {
+            ar->namewhat = getfuncname(L, ci, &ar->name);
+            if (ar->namewhat == NULL) {
+                ar->namewhat = "";  /* not found */
+                ar->name = NULL;
             }
-            case 't': {
-                ar->istailcall = (ci) ? ci->callstatus & CIST_TAIL : 0;
-                break;
+            break;
+        }
+        case 'r': {
+            if (ci == NULL || !(ci->callstatus & CIST_TRAN))
+                ar->ftransfer = ar->ntransfer = 0;
+            else {
+                ar->ftransfer = ci->u2.transferinfo.ftransfer;
+                ar->ntransfer = ci->u2.transferinfo.ntransfer;
             }
-            case 'n': {
-                ar->namewhat = getfuncname(L, ci, &ar->name);
-                if (ar->namewhat == NULL) {
-                    ar->namewhat = "";  /* not found */
-                    ar->name = NULL;
-                }
-                break;
-            }
-            case 'r': {
-                if (ci == NULL || !(ci->callstatus & CIST_TRAN))
-                    ar->ftransfer = ar->ntransfer = 0;
-                else {
-                    ar->ftransfer = ci->u2.transferinfo.ftransfer;
-                    ar->ntransfer = ci->u2.transferinfo.ntransfer;
-                }
-                break;
-            }
-            case 'L':
-            case 'f':  /* handled by lua_getinfo */
-                break;
-            default: status = 0;  /* invalid option */
+            break;
+        }
+        case 'L':
+        case 'f':  /* handled by lua_getinfo */
+            break;
+        default: status = 0;  /* invalid option */
         }
     }
     return status;
@@ -415,11 +415,11 @@ LUA_API int lua_getinfo(lua_State* L, const char* what, lua_Debug* ar) {
     status = auxgetinfo(L, what, ar, cl, ci);
     if (strchr(what, 'f')) {
         /*RC:YILIN*/
-        luaRC_subref(L, s2v(L->top));        
+        luaRC_subref(L, s2v(L->top));
         setobj2s(L, L->top, func);
         api_incr_top(L);
     }
-    if (strchr(what, 'L')) 
+    if (strchr(what, 'L'))
     {
         collectvalidlines(L, cl);
     }
@@ -435,7 +435,7 @@ LUA_API int lua_getinfo(lua_State* L, const char* what, lua_Debug* ar) {
  */
 
 static const char* getobjname(const Proto* p, int lastpc, int reg,
-                              const char** name);
+    const char** name);
 
 
 /*
@@ -480,7 +480,7 @@ static int filterpc(int pc, int jmptarget) {
  ** Try to find last instruction before 'lastpc' that modified register 'reg'.
  */
 static int findsetreg(const Proto* p, int lastpc, int reg) {
-    int pc=0;
+    int pc = 0;
     int setreg = -1;  /* keep last instruction that changed 'reg' */
     int jmptarget = 0;  /* any code before this address is conditional */
     if (testMMMode(GET_OPCODE(p->code[lastpc])))
@@ -489,34 +489,34 @@ static int findsetreg(const Proto* p, int lastpc, int reg) {
         Instruction i = p->code[pc];
         OpCode op = GET_OPCODE(i);
         int a = GETARG_A(i);
-        int change=0;  /* true if current instruction changed 'reg' */
+        int change = 0;  /* true if current instruction changed 'reg' */
         switch (op) {
-            case OP_LOADNIL: {  /* set registers from 'a' to 'a+b' */
-                int b = GETARG_B(i);
-                change = (a <= reg && reg <= a + b);
-                break;
-            }
-            case OP_TFORCALL: {  /* affect all regs above its base */
-                change = (reg >= a + 2);
-                break;
-            }
-            case OP_CALL:
-            case OP_TAILCALL: {  /* affect all registers above base */
-                change = (reg >= a);
-                break;
-            }
-            case OP_JMP: {  /* doesn't change registers, but changes 'jmptarget' */
-                int b = GETARG_sJ(i);
-                int dest = pc + 1 + b;
-                /* jump does not skip 'lastpc' and is larger than current one? */
-                if (dest <= lastpc && dest > jmptarget)
-                    jmptarget = dest;  /* update 'jmptarget' */
-                change = 0;
-                break;
-            }
-            default:  /* any instruction that sets A */
-                change = (testAMode(op) && reg == a);
-                break;
+        case OP_LOADNIL: {  /* set registers from 'a' to 'a+b' */
+            int b = GETARG_B(i);
+            change = (a <= reg && reg <= a + b);
+            break;
+        }
+        case OP_TFORCALL: {  /* affect all regs above its base */
+            change = (reg >= a + 2);
+            break;
+        }
+        case OP_CALL:
+        case OP_TAILCALL: {  /* affect all registers above base */
+            change = (reg >= a);
+            break;
+        }
+        case OP_JMP: {  /* doesn't change registers, but changes 'jmptarget' */
+            int b = GETARG_sJ(i);
+            int dest = pc + 1 + b;
+            /* jump does not skip 'lastpc' and is larger than current one? */
+            if (dest <= lastpc && dest > jmptarget)
+                jmptarget = dest;  /* update 'jmptarget' */
+            change = 0;
+            break;
+        }
+        default:  /* any instruction that sets A */
+            change = (testAMode(op) && reg == a);
+            break;
         }
         if (change)
             setreg = filterpc(pc, jmptarget);
@@ -531,7 +531,7 @@ static int findsetreg(const Proto* p, int lastpc, int reg) {
  */
 static const char* gxf(const Proto* p, int pc, Instruction i, int isup) {
     int t = GETARG_B(i);  /* table index */
-    const char* name=0;  /* name of indexed variable */
+    const char* name = 0;  /* name of indexed variable */
     if (isup)  /* is an upvalue? */
         name = upvalname(p, t);
     else
@@ -541,8 +541,8 @@ static const char* gxf(const Proto* p, int pc, Instruction i, int isup) {
 
 
 static const char* getobjname(const Proto* p, int lastpc, int reg,
-                              const char** name) {
-    int pc=0;
+    const char** name) {
+    int pc = 0;
     *name = luaF_getlocalname(p, reg + 1, lastpc);
     if (*name)  /* is a local? */
         return "local";
@@ -552,50 +552,50 @@ static const char* getobjname(const Proto* p, int lastpc, int reg,
         Instruction i = p->code[pc];
         OpCode op = GET_OPCODE(i);
         switch (op) {
-            case OP_MOVE: {
-                int b = GETARG_B(i);  /* move from 'b' to 'a' */
-                if (b < GETARG_A(i))
-                    return getobjname(p, pc, b, name);  /* get name for 'b' */
-                break;
-            }
-            case OP_GETTABUP: {
-                int k = GETARG_C(i);  /* key index */
-                kname(p, k, name);
-                return gxf(p, pc, i, 1);
-            }
-            case OP_GETTABLE: {
-                int k = GETARG_C(i);  /* key index */
-                rname(p, pc, k, name);
-                return gxf(p, pc, i, 0);
-            }
-            case OP_GETI: {
-                *name = "integer index";
-                return "field";
-            }
-            case OP_GETFIELD: {
-                int k = GETARG_C(i);  /* key index */
-                kname(p, k, name);
-                return gxf(p, pc, i, 0);
-            }
-            case OP_GETUPVAL: {
-                *name = upvalname(p, GETARG_B(i));
-                return "upvalue";
-            }
-            case OP_LOADK:
-            case OP_LOADKX: {
-                int b = (op == OP_LOADK) ? GETARG_Bx(i)
+        case OP_MOVE: {
+            int b = GETARG_B(i);  /* move from 'b' to 'a' */
+            if (b < GETARG_A(i))
+                return getobjname(p, pc, b, name);  /* get name for 'b' */
+            break;
+        }
+        case OP_GETTABUP: {
+            int k = GETARG_C(i);  /* key index */
+            kname(p, k, name);
+            return gxf(p, pc, i, 1);
+        }
+        case OP_GETTABLE: {
+            int k = GETARG_C(i);  /* key index */
+            rname(p, pc, k, name);
+            return gxf(p, pc, i, 0);
+        }
+        case OP_GETI: {
+            *name = "integer index";
+            return "field";
+        }
+        case OP_GETFIELD: {
+            int k = GETARG_C(i);  /* key index */
+            kname(p, k, name);
+            return gxf(p, pc, i, 0);
+        }
+        case OP_GETUPVAL: {
+            *name = upvalname(p, GETARG_B(i));
+            return "upvalue";
+        }
+        case OP_LOADK:
+        case OP_LOADKX: {
+            int b = (op == OP_LOADK) ? GETARG_Bx(i)
                 : GETARG_Ax(p->code[pc + 1]);
-                if (ttisstring(&p->k[b])) {
-                    *name = svalue(&p->k[b]);
-                    return "constant";
-                }
-                break;
+            if (ttisstring(&p->k[b])) {
+                *name = svalue(&p->k[b]);
+                return "constant";
             }
-            case OP_SELF: {
-                rkname(p, pc, i, name);
-                return "method";
-            }
-            default: break;  /* go through to return NULL */
+            break;
+        }
+        case OP_SELF: {
+            rkname(p, pc, i, name);
+            return "method";
+        }
+        default: break;  /* go through to return NULL */
         }
     }
     return NULL;  /* could not find reasonable name */
@@ -609,7 +609,7 @@ static const char* getobjname(const Proto* p, int lastpc, int reg,
  ** "metamethod") and sets '*name' to point to the name.
  */
 static const char* funcnamefromcode(lua_State* L, CallInfo* ci,
-                                    const char** name) {
+    const char** name) {
     TMS tm = (TMS)0;  /* (initial value avoids warnings) */
     const Proto* p = ci_func(ci)->p;  /* calling function */
     int pc = currentpc(ci);  /* calling instruction index */
@@ -619,38 +619,38 @@ static const char* funcnamefromcode(lua_State* L, CallInfo* ci,
         return "hook";
     }
     switch (GET_OPCODE(i)) {
-        case OP_CALL:
-        case OP_TAILCALL:
-            return getobjname(p, pc, GETARG_A(i), name);  /* get function name */
-        case OP_TFORCALL: {  /* for iterator */
-            *name = "for iterator";
-            return "for iterator";
-        }
-            /* other instructions can do calls through metamethods */
-        case OP_SELF: case OP_GETTABUP: case OP_GETTABLE:
-        case OP_GETI: case OP_GETFIELD:
-            tm = TM_INDEX;
-            break;
-        case OP_SETTABUP: case OP_SETTABLE: case OP_SETI: case OP_SETFIELD:
-            tm = TM_NEWINDEX;
-            break;
-        case OP_MMBIN: case OP_MMBINI: case OP_MMBINK: {
-            tm = cast(TMS, GETARG_C(i));
-            break;
-        }
-        case OP_UNM: tm = TM_UNM; break;
-        case OP_BNOT: tm = TM_BNOT; break;
-        case OP_LEN: tm = TM_LEN; break;
-        case OP_CONCAT: tm = TM_CONCAT; break;
-        case OP_EQ: tm = TM_EQ; break;
-        case OP_LT: case OP_LE: case OP_LTI: case OP_LEI:
-            *name = "order";  /* '<=' can call '__lt', etc. */
-            return "metamethod";
-        case OP_CLOSE: case OP_RETURN:
-            *name = "close";
-            return "metamethod";
-        default:
-            return NULL;  /* cannot find a reasonable name */
+    case OP_CALL:
+    case OP_TAILCALL:
+        return getobjname(p, pc, GETARG_A(i), name);  /* get function name */
+    case OP_TFORCALL: {  /* for iterator */
+        *name = "for iterator";
+        return "for iterator";
+    }
+                    /* other instructions can do calls through metamethods */
+    case OP_SELF: case OP_GETTABUP: case OP_GETTABLE:
+    case OP_GETI: case OP_GETFIELD:
+        tm = TM_INDEX;
+        break;
+    case OP_SETTABUP: case OP_SETTABLE: case OP_SETI: case OP_SETFIELD:
+        tm = TM_NEWINDEX;
+        break;
+    case OP_MMBIN: case OP_MMBINI: case OP_MMBINK: {
+        tm = cast(TMS, GETARG_C(i));
+        break;
+    }
+    case OP_UNM: tm = TM_UNM; break;
+    case OP_BNOT: tm = TM_BNOT; break;
+    case OP_LEN: tm = TM_LEN; break;
+    case OP_CONCAT: tm = TM_CONCAT; break;
+    case OP_EQ: tm = TM_EQ; break;
+    case OP_LT: case OP_LE: case OP_LTI: case OP_LEI:
+        *name = "order";  /* '<=' can call '__lt', etc. */
+        return "metamethod";
+    case OP_CLOSE: case OP_RETURN:
+        *name = "close";
+        return "metamethod";
+    default:
+        return NULL;  /* cannot find a reasonable name */
     }
     *name = getstr(G(L)->tmname[tm]) + 2;
     return "metamethod";
@@ -678,9 +678,9 @@ static int isinstack(CallInfo* ci, const TValue* o) {
  ** upvalues.)
  */
 static const char* getupvalname(CallInfo* ci, const TValue* o,
-                                const char** name) {
+    const char** name) {
     LClosure* c = ci_func(ci);
-    int i =0 ;
+    int i = 0;
     for (i = 0; i < c->nupvalues; i++) {
         if (c->upvals[i]->v == o) {
             *name = upvalname(c->p, i);
@@ -699,7 +699,7 @@ static const char* varinfo(lua_State* L, const TValue* o) {
         kind = getupvalname(ci, o, &name);  /* check whether 'o' is an upvalue */
         if (!kind && isinstack(ci, o))  /* no? try a register */
             kind = getobjname(ci_func(ci)->p, currentpc(ci),
-                              cast_int(cast(StkId, o) - (ci->func + 1)), &name);
+                cast_int(cast(StkId, o) - (ci->func + 1)), &name);
     }
     return (kind) ? luaO_pushfstring(L, " (%s '%s')", kind, name) : "";
 }
@@ -713,7 +713,7 @@ l_noret luaG_typeerror(lua_State* L, const TValue* o, const char* op) {
 
 l_noret luaG_forerror(lua_State* L, const TValue* o, const char* what) {
     luaG_runerror(L, "bad 'for' %s (number expected, got %s)",
-                  what, luaT_objtypename(L, o));
+        what, luaT_objtypename(L, o));
 }
 
 
@@ -724,7 +724,7 @@ l_noret luaG_concaterror(lua_State* L, const TValue* p1, const TValue* p2) {
 
 
 l_noret luaG_opinterror(lua_State* L, const TValue* p1,
-                        const TValue* p2, const char* msg) {
+    const TValue* p2, const char* msg) {
     if (!ttisnumber(p1))  /* first operand is wrong? */
         p2 = p1;  /* now second is wrong */
     luaG_typeerror(L, p2, msg);
@@ -735,8 +735,8 @@ l_noret luaG_opinterror(lua_State* L, const TValue* p1,
  ** Error when both values are convertible to numbers, but not to integers
  */
 l_noret luaG_tointerror(lua_State* L, const TValue* p1, const TValue* p2) {
-    lua_Integer t=0;
-    if (!tointegerns(L,p1, &t))
+    lua_Integer t = 0;
+    if (!tointegerns(L, p1, &t))
         p2 = p1;
     luaG_runerror(L, "number%s has no integer representation", varinfo(L, p2));
 }
@@ -754,8 +754,8 @@ l_noret luaG_ordererror(lua_State* L, const TValue* p1, const TValue* p2) {
 
 /* add src:line information to 'msg' */
 const char* luaG_addinfo(lua_State* L, const char* msg, TString* src,
-                         int line) {
-    char buff[LUA_IDSIZE]={0};
+    int line) {
+    char buff[LUA_IDSIZE] = { 0 };
     if (src)
         luaO_chunkid(buff, getstr(src), tsslen(src));
     else {  /* no source available; use "?" instead */
@@ -808,7 +808,7 @@ static int changedline(const Proto* p, int oldpc, int newpc) {
 int luaG_traceexec(lua_State* L, const Instruction* pc) {
     CallInfo* ci = L->ci;
     lu_byte mask = L->hookmask;
-    int counthook=0;
+    int counthook = 0;
     if (!(mask & (LUA_MASKLINE | LUA_MASKCOUNT))) {  /* no hooks? */
         ci->u.l.trap = 0;  /* don't need to stop again */
         return 0;  /* turn off 'trap' */

@@ -108,7 +108,7 @@ int luaRC_process_unlink_upval(lua_State* L, UpVal* uv, struct cstl_array* dup_a
         //if closed, value is uv->u.value;
         TValue* v = uv->tbc ? uv->v : &uv->u.value;
 
-        if (v!=0 && is_collectable(v->tt_)) {
+        if (v != 0 && is_collectable(v->tt_)) {
             v->tt_ = LUA_TNIL;
             luaC_process_unlink_gc(L, v->value_.gc, dup_array, collecting);
         }
@@ -199,7 +199,7 @@ int luaRC_process_unlink_ccl(lua_State* L, CClosure* ccl, struct cstl_array* dup
 int luaRC_process_unlink_object(lua_State* L, GCObject* o, struct cstl_array* dup_array, struct cstl_set* collecting)
 {
     int mc = 0;
-    if (o != 0 && (is_collectable(o->tt))){
+    if (o != 0 && (is_collectable(o->tt))) {
         switch (o->tt & 0x0f) {
         case LUA_TSTRING:
         {
@@ -293,7 +293,7 @@ int luaRC_process_unlink(lua_State* L, GCObject* m, struct cstl_set* collecting)
     return nc;
 }
 const char* luaRC_get_type_name(lu_byte tt) {
-    if (tt == 0xff) return "LUA_TNONE"; 
+    if (tt == 0xff) return "LUA_TNONE";
     else switch (tt & 0x0f) {
     case  LUA_TNIL:  return "LUA_TNIL";
     case  LUA_TBOOLEAN:  return "LUA_TBOOLEAN";
@@ -306,7 +306,8 @@ const char* luaRC_get_type_name(lu_byte tt) {
     case  LUA_TTHREAD: return "LUA_TTHREAD";
     case LUA_TUPVAL: return "LUA_TUPVAL";
     case LUA_TPROTO: return "LUA_TPROTO";
-    default: return "LUA_UNKNOWN"; }
+    default: return "LUA_UNKNOWN";
+    }
 }
 
 int luaRC_collect(lua_State* L, struct cstl_set* collecting)
@@ -353,7 +354,7 @@ l_mem luaRC_addref_object(lua_State* L, GCObject* o)
     l_mem c = 0;
     if (!enable_gc && o != 0 && o->count >= 0)
     {
-        if (o->count == 0) cstl_set_insert(luaRC_ensure_objects(), &o, sizeof(void*));       
+        if (o->count == 0) cstl_set_insert(luaRC_ensure_objects(), &o, sizeof(void*));
         c = (++o->count);
     }
     return c;
@@ -436,9 +437,9 @@ l_mem luaRC_subref(lua_State* L, TValue* d)
 l_mem luaRC_fix_object(lua_State* L, GCObject* o)
 {
     l_mem c = 0;
-    if (!enable_gc && o != 0 && o->count>=0)
+    if (!enable_gc && o != 0 && o->count >= 0)
     {
-        if (o->count == 0) cstl_set_insert(luaRC_ensure_objects(), &o, sizeof(void*));        
+        if (o->count == 0) cstl_set_insert(luaRC_ensure_objects(), &o, sizeof(void*));
         c = o->count = -1;
     }
     return c;

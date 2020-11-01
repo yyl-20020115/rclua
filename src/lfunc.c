@@ -25,17 +25,17 @@
 
 
 
-CClosure *luaF_newCclosure (lua_State *L, int nupvals) {
-    GCObject *o = luaC_newobj(L, LUA_VCCL, sizeCclosure(nupvals));
-    CClosure *c = gco2ccl(o);
+CClosure* luaF_newCclosure(lua_State* L, int nupvals) {
+    GCObject* o = luaC_newobj(L, LUA_VCCL, sizeCclosure(nupvals));
+    CClosure* c = gco2ccl(o);
     c->nupvalues = cast_byte(nupvals);
     return c;
 }
 
 
-LClosure *luaF_newLclosure (lua_State *L, int nupvals) {
-    GCObject *o = luaC_newobj(L, LUA_VLCL, sizeLclosure(nupvals));
-    LClosure *c = gco2lcl(o);
+LClosure* luaF_newLclosure(lua_State* L, int nupvals) {
+    GCObject* o = luaC_newobj(L, LUA_VLCL, sizeLclosure(nupvals));
+    LClosure* c = gco2lcl(o);
     c->p = NULL;
     c->nupvalues = cast_byte(nupvals);
     while (nupvals--) c->upvals[nupvals] = NULL;
@@ -46,11 +46,11 @@ LClosure *luaF_newLclosure (lua_State *L, int nupvals) {
 /*
  ** fill a closure with new closed upvalues
  */
-void luaF_initupvals (lua_State *L, LClosure *cl) {
-    int i=0;
+void luaF_initupvals(lua_State* L, LClosure* cl) {
+    int i = 0;
     for (i = 0; i < cl->nupvalues; i++) {
-        GCObject *o = luaC_newobj(L, LUA_VUPVAL, sizeof(UpVal));
-        UpVal *uv = gco2upv(o);
+        GCObject* o = luaC_newobj(L, LUA_VUPVAL, sizeof(UpVal));
+        UpVal* uv = gco2upv(o);
         uv->v = &uv->u.value;  /* make it closed */
         setnilvalue(uv->v);
         cl->upvals[i] = uv;
@@ -63,10 +63,10 @@ void luaF_initupvals (lua_State *L, LClosure *cl) {
  ** Create a new upvalue at the given level, and link it to the list of
  ** open upvalues of 'L' after entry 'prev'.
  **/
-static UpVal *newupval (lua_State *L, int tbc, StkId level, UpVal **prev) {
-    GCObject *o = luaC_newobj(L, LUA_VUPVAL, sizeof(UpVal));
-    UpVal *uv = gco2upv(o);
-    UpVal *next = *prev;
+static UpVal* newupval(lua_State* L, int tbc, StkId level, UpVal** prev) {
+    GCObject* o = luaC_newobj(L, LUA_VUPVAL, sizeof(UpVal));
+    UpVal* uv = gco2upv(o);
+    UpVal* next = *prev;
     uv->v = s2v(level);  /* current value lives in the stack */
     uv->tbc = tbc;
     uv->u.open.next = next;  /* link it to list of open upvalues */
@@ -86,9 +86,9 @@ static UpVal *newupval (lua_State *L, int tbc, StkId level, UpVal **prev) {
  ** Find and reuse, or create if it does not exist, an upvalue
  ** at the given level.
  */
-UpVal *luaF_findupval (lua_State *L, StkId level) {
-    UpVal **pp = &L->openupval;
-    UpVal *p=0;
+UpVal* luaF_findupval(lua_State* L, StkId level) {
+    UpVal** pp = &L->openupval;
+    UpVal* p = 0;
     lua_assert(isintwups(L) || L->openupval == NULL);
     while ((p = *pp) != NULL && uplevel(p) >= level) {  /* search for it */
         lua_assert(!isdead(G(L), p));
@@ -101,7 +101,7 @@ UpVal *luaF_findupval (lua_State *L, StkId level) {
 }
 
 
-static void callclose (lua_State *L, void *ud) {
+static void callclose(lua_State* L, void* ud) {
     UNUSED(ud);
     luaD_callnoyield(L, L->top - 3, 0);
 }
@@ -111,9 +111,9 @@ static void callclose (lua_State *L, void *ud) {
  ** Prepare closing method plus its arguments for object 'obj' with
  ** error message 'err'. (This function assumes EXTRA_STACK.)
  */
-static int prepclosingmethod (lua_State *L, TValue *obj, TValue *err) {
+static int prepclosingmethod(lua_State* L, TValue* obj, TValue* err) {
     StkId top = L->top;
-    const TValue *tm = luaT_gettmbyobj(L, obj, TM_CLOSE);
+    const TValue* tm = luaT_gettmbyobj(L, obj, TM_CLOSE);
     if (ttisnil(tm))  /* no metamethod? */
         return 0;  /* nothing to call */
     setobj2s(L, top, tm);  /* will call metamethod... */
@@ -128,9 +128,9 @@ static int prepclosingmethod (lua_State *L, TValue *obj, TValue *err) {
  ** Raise an error with message 'msg', inserting the name of the
  ** local variable at position 'level' in the stack.
  */
-static void varerror (lua_State *L, StkId level, const char *msg) {
+static void varerror(lua_State* L, StkId level, const char* msg) {
     int idx = cast_int(level - L->ci->func);
-    const char *vname = luaG_findlocal(L, L->ci, idx, NULL);
+    const char* vname = luaG_findlocal(L, L->ci, idx, NULL);
     if (vname == NULL) vname = "?";
     luaG_runerror(L, msg, vname);
 }
@@ -148,8 +148,8 @@ static void varerror (lua_State *L, StkId level, const char *msg) {
  ** the 'level' of the upvalue being closed, as everything after
  ** that won't be used again.
  */
-static int callclosemth (lua_State *L, StkId level, int status) {
-    TValue *uv = s2v(level);  /* value being closed */
+static int callclosemth(lua_State* L, StkId level, int status) {
+    TValue* uv = s2v(level);  /* value being closed */
     if (likely(status == LUA_OK)) {
         if (prepclosingmethod(L, uv, &G(L)->nilvalue))  /* something to call? */
             callclose(L, NULL);  /* call closing method */
@@ -157,7 +157,7 @@ static int callclosemth (lua_State *L, StkId level, int status) {
             varerror(L, level, "attempt to close non-closable variable '%s'");
     }
     else {  /* must close the object in protected mode */
-        ptrdiff_t oldtop=0;
+        ptrdiff_t oldtop = 0;
         level++;  /* space for error message */
         oldtop = savestack(L, level + 1);  /* top will be after that */
         luaD_seterrorobj(L, status, level);  /* set error message */
@@ -182,7 +182,7 @@ static int callclosemth (lua_State *L, StkId level, int status) {
  ** Try to create a to-be-closed upvalue
  ** (can raise a memory-allocation error)
  */
-static void trynewtbcupval (lua_State *L, void *ud) {
+static void trynewtbcupval(lua_State* L, void* ud) {
     newupval(L, 1, cast(StkId, ud), &L->openupval);
 }
 
@@ -192,12 +192,12 @@ static void trynewtbcupval (lua_State *L, void *ud) {
  ** when creating the upvalue, the closing method must be called here,
  ** as there is no upvalue to call it later.
  */
-void luaF_newtbcupval (lua_State *L, StkId level) {
-    TValue *obj = s2v(level);
+void luaF_newtbcupval(lua_State* L, StkId level) {
+    TValue* obj = s2v(level);
     lua_assert(L->openupval == NULL || uplevel(L->openupval) < level);
     if (!l_isfalse(obj)) {  /* false doesn't need to be closed */
-        int status=0;
-        const TValue *tm = luaT_gettmbyobj(L, obj, TM_CLOSE);
+        int status = 0;
+        const TValue* tm = luaT_gettmbyobj(L, obj, TM_CLOSE);
         if (ttisnil(tm))  /* no metamethod? */
             varerror(L, level, "variable '%s' got a non-closable value");
         status = luaD_rawrunprotected(L, trynewtbcupval, level);
@@ -213,7 +213,7 @@ void luaF_newtbcupval (lua_State *L, StkId level) {
 }
 
 
-void luaF_unlinkupval (UpVal *uv) {
+void luaF_unlinkupval(UpVal* uv) {
     lua_assert(upisopen(uv));
     *uv->u.open.previous = uv->u.open.next;
     if (uv->u.open.next)
@@ -221,10 +221,10 @@ void luaF_unlinkupval (UpVal *uv) {
 }
 
 
-int luaF_close (lua_State *L, StkId level, int status) {
-    UpVal *uv=0;
+int luaF_close(lua_State* L, StkId level, int status) {
+    UpVal* uv = 0;
     while ((uv = L->openupval) != NULL && uplevel(uv) >= level) {
-        TValue *slot = &uv->u.value;  /* new position for value */
+        TValue* slot = &uv->u.value;  /* new position for value */
         lua_assert(uplevel(uv) < L->top);
         if (uv->tbc && status != NOCLOSINGMETH) {
             /* must run closing method, which may change the stack */
@@ -244,9 +244,9 @@ int luaF_close (lua_State *L, StkId level, int status) {
 }
 
 
-Proto *luaF_newproto (lua_State *L) {
-    GCObject *o = luaC_newobj(L, LUA_VPROTO, sizeof(Proto));
-    Proto *f = gco2p(o);
+Proto* luaF_newproto(lua_State* L) {
+    GCObject* o = luaC_newobj(L, LUA_VPROTO, sizeof(Proto));
+    Proto* f = gco2p(o);
     f->k = NULL;
     f->sizek = 0;
     f->p = NULL;
@@ -271,7 +271,7 @@ Proto *luaF_newproto (lua_State *L) {
 }
 
 
-void luaF_freeproto (lua_State *L, Proto *f) {
+void luaF_freeproto(lua_State* L, Proto* f) {
     luaM_freearray(L, f->code, f->sizecode);
     luaM_freearray(L, f->p, f->sizep);
     luaM_freearray(L, f->k, f->sizek);
@@ -287,9 +287,9 @@ void luaF_freeproto (lua_State *L, Proto *f) {
  ** Look for n-th local variable at line 'line' in function 'func'.
  ** Returns NULL if not found.
  */
-const char *luaF_getlocalname (const Proto *f, int local_number, int pc) {
-    int i=0;
-    for (i = 0; i<f->sizelocvars && f->locvars[i].startpc <= pc; i++) {
+const char* luaF_getlocalname(const Proto* f, int local_number, int pc) {
+    int i = 0;
+    for (i = 0; i < f->sizelocvars && f->locvars[i].startpc <= pc; i++) {
         if (pc < f->locvars[i].endpc) {  /* is variable active? */
             local_number--;
             if (local_number == 0)
@@ -297,5 +297,5 @@ const char *luaF_getlocalname (const Proto *f, int local_number, int pc) {
         }
     }
     return NULL;  /* not found */
-} 
+}
 

@@ -365,7 +365,7 @@ OP_EXTRAARG/*	Ax	extra (larger) argument for previous opcode	*/
 ** bit 7: instruction is an MM instruction (call a metamethod)
 */
 
-LUAI_DDEC(const lu_byte luaP_opmodes[NUM_OPCODES];)
+LUAI_DDEC(const lu_byte luaP_opmodes[NUM_OPCODES|0x80];)
 
 #define getOpMode(m)	(cast(enum OpMode, luaP_opmodes[m] & 7))
 #define testAMode(m)	(luaP_opmodes[m] & (1 << 3))
