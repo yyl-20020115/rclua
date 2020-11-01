@@ -26,7 +26,7 @@
 #include "lstring.h"
 #include "ltable.h"
 #include "ltm.h"
-
+#include "lrc.h"
 
 
 /*
@@ -69,7 +69,7 @@ typedef struct LG {
 memcpy(b + p, &t, sizeof(t)); p += sizeof(t); }
 
 static unsigned int luai_makeseed (lua_State *L) {
-    char buff[3 * sizeof(size_t)];
+    char buff[3 * sizeof(size_t)]={0};
     unsigned int h = cast_uint(time(NULL));
     int p = 0;
     addbuff(buff, p, L);  /* heap variable */
@@ -98,7 +98,7 @@ void luaE_setdebt (global_State *g, l_mem debt) {
 
 LUA_API int lua_setcstacklimit (lua_State *L, unsigned int limit) {
     global_State *g = G(L);
-    int ccalls;
+    int ccalls=0;
     luaE_freeCI(L);  /* release unused CIs */
     ccalls = getCcalls(L);
     if (limit >= 40000)
@@ -154,7 +154,7 @@ void luaE_enterCcall (lua_State *L) {
 
 
 CallInfo *luaE_extendCI (lua_State *L) {
-    CallInfo *ci;
+    CallInfo *ci=0;
     lua_assert(L->ci->next == NULL);
     luaE_enterCcall(L);
     ci = luaM_new(L, CallInfo);
@@ -212,8 +212,8 @@ void luaE_shrinkCI (lua_State *L) {
 
 
 static void stack_init (lua_State *L1, lua_State *L) {
-    int i;
-    CallInfo *ci;
+    int i=0;
+    CallInfo *ci=0;
     /* initialize stack array */
     L1->stack = luaM_newvector(L, BASIC_STACK_SIZE, StackValue);
     L1->stacksize = BASIC_STACK_SIZE;
@@ -367,8 +367,8 @@ void luaE_freethread (lua_State *L, lua_State *L1) {
 
 
 int lua_resetthread (lua_State *L) {
-    CallInfo *ci;
-    int status;
+    CallInfo *ci=0;
+    int status=0;
     lua_lock(L);
     L->ci = ci = &L->base_ci;  /* unwind CallInfo list */
     setnilvalue(s2v(L->stack));  /* 'function' entry for basic 'ci' */
@@ -387,11 +387,11 @@ int lua_resetthread (lua_State *L) {
     return status;
 }
 
-
+/*lua_newstate/lua_close do not use rc*/
 LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
-    int i;
-    lua_State *L;
-    global_State *g;
+    int i=0;
+    lua_State *L=0;
+    global_State *g=0;
     LG *l = cast(LG *, (*f)(ud, NULL, LUA_TTHREAD, sizeof(LG)));
     if (l == NULL) return NULL;
     /*RC:YILIN:FIXED*/
@@ -399,6 +399,7 @@ LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
     L = &l->l.l;
     g = &l->g;
     L->tt = LUA_VTHREAD;
+
     g->currentwhite = bitmask(WHITE0BIT);
     L->marked = luaC_white(g);
     preinit_thread(L, g);

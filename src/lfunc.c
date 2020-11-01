@@ -47,7 +47,7 @@ LClosure *luaF_newLclosure (lua_State *L, int nupvals) {
  ** fill a closure with new closed upvalues
  */
 void luaF_initupvals (lua_State *L, LClosure *cl) {
-    int i;
+    int i=0;
     for (i = 0; i < cl->nupvalues; i++) {
         GCObject *o = luaC_newobj(L, LUA_VUPVAL, sizeof(UpVal));
         UpVal *uv = gco2upv(o);
@@ -88,7 +88,7 @@ static UpVal *newupval (lua_State *L, int tbc, StkId level, UpVal **prev) {
  */
 UpVal *luaF_findupval (lua_State *L, StkId level) {
     UpVal **pp = &L->openupval;
-    UpVal *p;
+    UpVal *p=0;
     lua_assert(isintwups(L) || L->openupval == NULL);
     while ((p = *pp) != NULL && uplevel(p) >= level) {  /* search for it */
         lua_assert(!isdead(G(L), p));
@@ -157,7 +157,7 @@ static int callclosemth (lua_State *L, StkId level, int status) {
             varerror(L, level, "attempt to close non-closable variable '%s'");
     }
     else {  /* must close the object in protected mode */
-        ptrdiff_t oldtop;
+        ptrdiff_t oldtop=0;
         level++;  /* space for error message */
         oldtop = savestack(L, level + 1);  /* top will be after that */
         luaD_seterrorobj(L, status, level);  /* set error message */
@@ -196,7 +196,7 @@ void luaF_newtbcupval (lua_State *L, StkId level) {
     TValue *obj = s2v(level);
     lua_assert(L->openupval == NULL || uplevel(L->openupval) < level);
     if (!l_isfalse(obj)) {  /* false doesn't need to be closed */
-        int status;
+        int status=0;
         const TValue *tm = luaT_gettmbyobj(L, obj, TM_CLOSE);
         if (ttisnil(tm))  /* no metamethod? */
             varerror(L, level, "variable '%s' got a non-closable value");
@@ -222,7 +222,7 @@ void luaF_unlinkupval (UpVal *uv) {
 
 
 int luaF_close (lua_State *L, StkId level, int status) {
-    UpVal *uv;
+    UpVal *uv=0;
     while ((uv = L->openupval) != NULL && uplevel(uv) >= level) {
         TValue *slot = &uv->u.value;  /* new position for value */
         lua_assert(uplevel(uv) < L->top);
@@ -288,7 +288,7 @@ void luaF_freeproto (lua_State *L, Proto *f) {
  ** Returns NULL if not found.
  */
 const char *luaF_getlocalname (const Proto *f, int local_number, int pc) {
-    int i;
+    int i=0;
     for (i = 0; i<f->sizelocvars && f->locvars[i].startpc <= pc; i++) {
         if (pc < f->locvars[i].endpc) {  /* is variable active? */
             local_number--;
@@ -297,5 +297,5 @@ const char *luaF_getlocalname (const Proto *f, int local_number, int pc) {
         }
     }
     return NULL;  /* not found */
-}
+} 
 

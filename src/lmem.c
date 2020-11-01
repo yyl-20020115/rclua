@@ -78,7 +78,7 @@ static void *firsttry (global_State *g, void *block, size_t os, size_t ns) {
 
 void *luaM_growaux_ (lua_State *L, void *block, int nelems, int *psize,
                      int size_elems, int limit, const char *what) {
-    void *newblock;
+    void *newblock = 0;
     int size = *psize;
     if (nelems + 1 <= size)  /* does one extra element still fit? */
         return block;  /* nothing to be done */
@@ -109,7 +109,7 @@ void *luaM_growaux_ (lua_State *L, void *block, int nelems, int *psize,
  */
 void *luaM_shrinkvector_ (lua_State *L, void *block, int *size,
                           int final_n, int size_elem) {
-    void *newblock;
+    void *newblock = 0;
     size_t oldsize = cast_sizet((*size) * size_elem);
     size_t newsize = cast_sizet(final_n * size_elem);
     lua_assert(newsize <= oldsize);
@@ -160,7 +160,7 @@ static void *tryagain (lua_State *L, void *block,
  ** GC shrinks some blocks and it is not reentrant.
  */
 void *luaM_realloc_ (lua_State *L, void *block, size_t osize, size_t nsize) {
-    void *newblock;
+    void *newblock = 0;
     global_State *g = G(L);
     lua_assert((osize == 0) == (block == NULL));
     newblock = firsttry(g, block, osize, nsize);
@@ -200,3 +200,4 @@ void *luaM_malloc_ (lua_State *L, size_t size, int tag) {
         return newblock;
     }
 }
+/*RC:YILIN:DONE*/

@@ -59,7 +59,7 @@ static void dumpByte (DumpState *D, int y) {
 #define DIBS    ((sizeof(size_t) * 8 / 7) + 1)
 
 static void dumpSize (DumpState *D, size_t x) {
-    lu_byte buff[DIBS];
+    lu_byte buff[DIBS]={0};
     int n = 0;
     do {
         buff[DIBS - (++n)] = x & 0x7f;  /* fill buffer in reverse order */
@@ -106,7 +106,7 @@ static void dumpCode (DumpState *D, const Proto *f) {
 static void dumpFunction(DumpState *D, const Proto *f, TString *psource);
 
 static void dumpConstants (DumpState *D, const Proto *f) {
-    int i;
+    int i=0;
     int n = f->sizek;
     dumpInt(D, n);
     for (i = 0; i < n; i++) {
@@ -132,7 +132,7 @@ static void dumpConstants (DumpState *D, const Proto *f) {
 
 
 static void dumpProtos (DumpState *D, const Proto *f) {
-    int i;
+    int i=0;
     int n = f->sizep;
     dumpInt(D, n);
     for (i = 0; i < n; i++)
@@ -141,7 +141,7 @@ static void dumpProtos (DumpState *D, const Proto *f) {
 
 
 static void dumpUpvalues (DumpState *D, const Proto *f) {
-    int i, n = f->sizeupvalues;
+    int i=0, n = f->sizeupvalues;
     dumpInt(D, n);
     for (i = 0; i < n; i++) {
         dumpByte(D, f->upvalues[i].instack);
@@ -152,7 +152,7 @@ static void dumpUpvalues (DumpState *D, const Proto *f) {
 
 
 static void dumpDebug (DumpState *D, const Proto *f) {
-    int i, n;
+    int i=0, n=0;
     n = (D->strip) ? 0 : f->sizelineinfo;
     dumpInt(D, n);
     dumpVector(D, f->lineinfo, n);
@@ -212,7 +212,7 @@ static void dumpHeader (DumpState *D) {
  */
 int luaU_dump(lua_State *L, const Proto *f, lua_Writer w, void *data,
               int strip) {
-    DumpState D;
+    DumpState D={0};
     D.L = L;
     D.writer = w;
     D.data = data;

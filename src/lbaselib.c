@@ -23,9 +23,9 @@
 
 static int luaB_print (lua_State *L) {
     int n = lua_gettop(L);  /* number of arguments */
-    int i;
+    int i =0;
     for (i = 1; i <= n; i++) {  /* for each argument */
-        size_t l;
+        size_t l=0;
         const char *s = luaL_tolstring(L, i, &l);  /* convert it to string */
         if (i > 1)  /* not the first element? */
             lua_writestring("\t", 1);  /* add a tab before it */
@@ -44,7 +44,7 @@ static int luaB_print (lua_State *L) {
  */
 static int luaB_warn (lua_State *L) {
     int n = lua_gettop(L);  /* number of arguments */
-    int i;
+    int i=0;
     luaL_checkstring(L, 1);  /* at least one argument */
     for (i = 2; i <= n; i++)
     luaL_checkstring(L, i);  /* make sure all arguments are strings */
@@ -85,7 +85,7 @@ static int luaB_tonumber (lua_State *L) {
             return 1;
         }
         else {
-            size_t l;
+            size_t l=0;
             const char *s = lua_tolstring(L, 1, &l);
             if (s != NULL && lua_stringtonumber(L, s) == l + 1)
                 return 1;  /* successful conversion to number */
@@ -94,8 +94,8 @@ static int luaB_tonumber (lua_State *L) {
         }
     }
     else {
-        size_t l;
-        const char *s;
+        size_t l=0;
+        const char *s=0;
         lua_Integer n = 0;  /* to avoid warnings */
         lua_Integer base = luaL_checkinteger(L, 2);
         luaL_checktype(L, 1, LUA_TSTRING);  /* no numbers as strings */
@@ -363,8 +363,8 @@ static const char *generic_reader (lua_State *L, void *ud, size_t *size) {
 
 
 static int luaB_load (lua_State *L) {
-    int status;
-    size_t l;
+    int status=0;
+    size_t l=0;
     const char *s = lua_tolstring(L, 1, &l);
     const char *mode = luaL_optstring(L, 3, "bt");
     int env = (!lua_isnone(L, 4) ? 4 : 0);  /* 'env' index or 0 if no 'env' */
@@ -448,7 +448,7 @@ static int finishpcall (lua_State *L, int status, lua_KContext extra) {
 
 
 static int luaB_pcall (lua_State *L) {
-    int status;
+    int status=0;
     luaL_checkany(L, 1);
     lua_pushboolean(L, 1);  /* first result if no errors */
     lua_insert(L, 1);  /* put it in place */
@@ -463,7 +463,7 @@ static int luaB_pcall (lua_State *L) {
  ** 2 to 'finishpcall' to skip the 2 first values when returning results.
  */
 static int luaB_xpcall (lua_State *L) {
-    int status;
+    int status=0;
     int n = lua_gettop(L);
     luaL_checktype(L, 2, LUA_TFUNCTION);  /* check error function */
     lua_pushboolean(L, 1);  /* first result */

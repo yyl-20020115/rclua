@@ -88,32 +88,32 @@ static lua_Number numarith (lua_State *L, int op, lua_Number v1,
 
 int luaO_rawarith (lua_State *L, int op, const TValue *p1, const TValue *p2,
                    TValue *res) {
-    switch (op) {
+     switch (op) {
         case LUA_OPBAND: case LUA_OPBOR: case LUA_OPBXOR:
         case LUA_OPSHL: case LUA_OPSHR:
         case LUA_OPBNOT: {  /* operate only on integers */
-            lua_Integer i1; lua_Integer i2;
-            if (tointegerns(p1, &i1) && tointegerns(p2, &i2)) {
+            lua_Integer i1=0; lua_Integer i2=0;
+            if (tointegerns(L,p1, &i1) && tointegerns(L,p2, &i2)) {
                 setivalue(res, intarith(L, op, i1, i2));
                 return 1;
             }
             else return 0;  /* fail */
         }
         case LUA_OPDIV: case LUA_OPPOW: {  /* operate only on floats */
-            lua_Number n1=0.0; lua_Number n2=0.0;
-            if (tonumberns(p1, n1) && tonumberns(p2, n2)) {
+            lua_Number n1=0; lua_Number n2=0;
+            if (tonumberns(L,p1, n1) && tonumberns(L,p2, n2)) {
                 setfltvalue(res, numarith(L, op, n1, n2));
                 return 1;
             }
             else return 0;  /* fail */
         }
         default: {  /* other operations */
-            lua_Number n1=0.0; lua_Number n2=0.0;
+            lua_Number n1=0; lua_Number n2=0;
             if (ttisinteger(p1) && ttisinteger(p2)) {
                 setivalue(res, intarith(L, op, ivalue(p1), ivalue(p2)));
                 return 1;
             }
-            else if (tonumberns(p1, n1) && tonumberns(p2, n2)) {
+            else if (tonumberns(L,p1, n1) && tonumberns(L,p2, n2)) {
                 setfltvalue(res, numarith(L, op, n1, n2));
                 return 1;
             }
@@ -125,6 +125,8 @@ int luaO_rawarith (lua_State *L, int op, const TValue *p1, const TValue *p2,
 
 void luaO_arith (lua_State *L, int op, const TValue *p1, const TValue *p2,
                  StkId res) {
+    /*RC:YILIN*/
+    setnilvalue_subref(L, s2v(res));
     if (!luaO_rawarith(L, op, p1, p2, s2v(res))) {
         /* could not perform raw operation; try metamethod */
         luaT_trybinTM(L, p1, p2, res, cast(TMS, (op - LUA_OPADD) + TM_ADD));
@@ -221,7 +223,7 @@ static lua_Number lua_strx2number (const char *s, char **endptr) {
 #endif
 
 static const char *l_str2dloc (const char *s, lua_Number *result, int mode) {
-    char *endptr;
+    char *endptr = 0;
     *result = (mode == 'x') ? lua_strx2number(s, &endptr)  /* try to convert */
     : lua_str2number(s, &endptr);
     if (endptr == s) return NULL;  /* nothing recognized? */
@@ -244,14 +246,14 @@ static const char *l_str2dloc (const char *s, lua_Number *result, int mode) {
  ** current locale radix mark, and tries to convert again.
  */
 static const char *l_str2d (const char *s, lua_Number *result) {
-    const char *endptr;
+    const char *endptr =0;
     const char *pmode = strpbrk(s, ".xXnN");
     int mode = pmode ? ltolower(cast_uchar(*pmode)) : 0;
     if (mode == 'n')  /* reject 'inf' and 'nan' */
         return NULL;
     endptr = l_str2dloc(s, result, mode);  /* try to convert */
     if (endptr == NULL) {  /* failed? may be a different locale */
-        char buff[L_MAXLENNUM + 1];
+        char buff[L_MAXLENNUM + 1]={0};
         const char *pdot = strchr(s, '.');
         if (strlen(s) > L_MAXLENNUM || pdot == NULL)
             return NULL;  /* string too long or no dot; fail */
@@ -271,7 +273,7 @@ static const char *l_str2d (const char *s, lua_Number *result) {
 static const char *l_str2int (const char *s, lua_Integer *result) {
     lua_Unsigned a = 0;
     int empty = 1;
-    int neg;
+    int neg=0;
     while (lisspace(cast_uchar(*s))) s++;  /* skip initial spaces */
     neg = isneg(&s);
     if (s[0] == '0' &&
@@ -300,14 +302,16 @@ static const char *l_str2int (const char *s, lua_Integer *result) {
 }
 
 
-size_t luaO_str2num (const char *s, TValue *o) {
-    lua_Integer i; lua_Number n;
-    const char *e;
+size_t luaO_str2num (lua_State* L, const char *s, TValue *o) {
+    lua_Integer i=0; lua_Number n=0;
+    const char *e=0;
     if ((e = l_str2int(s, &i)) != NULL) {  /* try as an integer */
-        setivalue(o, i);
+        /*RC:YILIN*/
+        setivalue_subref(L, o, i);
     }
     else if ((e = l_str2d(s, &n)) != NULL) {  /* else try as a float */
-        setfltvalue(o, n);
+        /*RC:YILIN*/
+        setfltvalue_subref(L, o, n);
     }
     else
         return 0;  /* conversion failed */
@@ -341,7 +345,7 @@ int luaO_utf8esc (char *buff, unsigned long x) {
  ** Convert a number object to a string, adding it to a buffer
  */
 static int tostringbuff (TValue *obj, char *buff) {
-    int len;
+    int len = 0;
     lua_assert(ttisnumber(obj));
     if (ttisinteger(obj))
         len = lua_integer2str(buff, MAXNUMBER2STR, ivalue(obj));
@@ -360,8 +364,10 @@ static int tostringbuff (TValue *obj, char *buff) {
  ** Convert a number object to a Lua string, replacing the value at 'obj'
  */
 void luaO_tostring (lua_State *L, TValue *obj) {
-    char buff[MAXNUMBER2STR];
+    char buff[MAXNUMBER2STR] = {0};
     int len = tostringbuff(obj, buff);
+    /*RC:YILIN*/
+    setnilvalue_subref(L, obj);
     setsvalue(L, obj, luaS_newlstr(L, buff, len));
 }
 
@@ -392,6 +398,8 @@ typedef struct BuffFS {
  */
 static void pushstr (BuffFS *buff, const char *str, size_t l) {
     lua_State *L = buff->L;
+    /*RC:YILIN*/
+    setnilvalue_subref(L, s2v(L->top));
     setsvalue2s(L, L->top, luaS_newlstr(L, str, l));
     L->top++;  /* may use one extra slot */
     buff->pushed++;
@@ -458,8 +466,8 @@ static void addnum2buff (BuffFS *buff, TValue *num) {
  conventional formats, plus Lua-specific '%I' and '%U'
  */
 const char *luaO_pushvfstring (lua_State *L, const char *fmt, va_list argp) {
-    BuffFS buff;  /* holds last part of the result */
-    const char *e;  /* points to next '%' */
+    BuffFS buff={0};  /* holds last part of the result */
+    const char *e = 0;  /* points to next '%' */
     buff.pushed = buff.blen = 0;
     buff.L = L;
     while ((e = strchr(fmt, '%')) != NULL) {
@@ -478,22 +486,19 @@ const char *luaO_pushvfstring (lua_State *L, const char *fmt, va_list argp) {
             }
             case 'd': {  /* an 'int' */
                 TValue num = { 0 };
-                /*RC:YILIN*/
-                setivalue_subref(L, &num, va_arg(argp, int));
+                setivalue(&num, va_arg(argp, int));
                 addnum2buff(&buff, &num);
                 break;
             }
             case 'I': {  /* a 'lua_Integer' */
                 TValue num = { 0 };
-                /*RC:YILIN*/
-                setivalue_subref(L, &num, cast(lua_Integer, va_arg(argp, l_uacInt)));
+                setivalue(&num, cast(lua_Integer, va_arg(argp, l_uacInt)));
                 addnum2buff(&buff, &num);
                 break;
             }
             case 'f': {  /* a 'lua_Number' */
-                /*RC:YILIN*/
                 TValue num = { 0 };
-                setfltvalue_subref(L, &num, cast_num(va_arg(argp, l_uacNumber)));
+                setfltvalue(&num, cast_num(va_arg(argp, l_uacNumber)));
                 addnum2buff(&buff, &num);
                 break;
             }
@@ -531,7 +536,7 @@ const char *luaO_pushvfstring (lua_State *L, const char *fmt, va_list argp) {
 
 
 const char *luaO_pushfstring (lua_State *L, const char *fmt, ...) {
-    const char *msg;
+    const char *msg=0;
     va_list argp;
     va_start(argp, fmt);
     msg = luaO_pushvfstring(L, fmt, argp);
@@ -583,3 +588,4 @@ void luaO_chunkid (char *out, const char *source, size_t srclen) {
         memcpy(out, POS, (LL(POS) + 1) * sizeof(char));
     }
 }
+/*RC:YILIN:DONE*/

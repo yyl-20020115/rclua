@@ -72,9 +72,9 @@ unsigned int luaS_hashlongstr (TString *ts) {
 
 
 static void tablerehash (TString **vect, int osize, int nsize) {
-    int i;
+    int i=0;
     for (i = osize; i < nsize; i++)  /* clear new elements */
-    vect[i] = NULL;
+        vect[i] = NULL;
     for (i = 0; i < osize; i++) {  /* rehash old part of the array */
         TString *p = vect[i];
         vect[i] = NULL;
@@ -97,7 +97,7 @@ static void tablerehash (TString **vect, int osize, int nsize) {
 void luaS_resize (lua_State *L, int nsize) {
     stringtable *tb = &G(L)->strt;
     int osize = tb->size;
-    TString **newvect;
+    TString **newvect=0;
     if (nsize < osize)  /* shrinking table? */
         tablerehash(tb->hash, osize, nsize);  /* depopulate shrinking part */
     newvect = luaM_reallocvector(L, tb->hash, osize, nsize, TString*);
@@ -120,7 +120,7 @@ void luaS_resize (lua_State *L, int nsize) {
  ** a non-collectable string.)
  */
 void luaS_clearcache (global_State *g) {
-    int i, j;
+    int i=0, j=0;
     for (i = 0; i < STRCACHE_N; i++)
     for (j = 0; j < STRCACHE_M; j++) {
         if (iswhite(g->strcache[i][j]))  /* will entry be collected? */
@@ -134,7 +134,7 @@ void luaS_clearcache (global_State *g) {
  */
 void luaS_init (lua_State *L) {
     global_State *g = G(L);
-    int i, j;
+    int i=0, j=0;
     stringtable *tb = &G(L)->strt;
     tb->hash = luaM_newvector(L, MINSTRTABSIZE, TString*);
     tablerehash(tb->hash, 0, MINSTRTABSIZE);  /* clear array */
@@ -153,9 +153,9 @@ void luaS_init (lua_State *L) {
  ** creates a new string object
  */
 static TString *createstrobj (lua_State *L, size_t l, int tag, unsigned int h) {
-    TString *ts;
-    GCObject *o;
-    size_t totalsize;  /* total size of TString object */
+    TString *ts=0;
+    GCObject *o=0;
+    size_t totalsize=0;  /* total size of TString object */
     totalsize = sizelstring(l);
     o = luaC_newobj(L, tag, totalsize);
     ts = gco2ts(o);
@@ -198,7 +198,7 @@ static void growstrtab (lua_State *L, stringtable *tb) {
  ** Checks whether short string exists and reuses it or creates a new one.
  */
 static TString *internshrstr (lua_State *L, const char *str, size_t l) {
-    TString *ts;
+    TString *ts=0;
     global_State *g = G(L);
     stringtable *tb = &g->strt;
     unsigned int h = luaS_hash(str, l, g->seed, 1);
@@ -234,7 +234,7 @@ TString *luaS_newlstr (lua_State *L, const char *str, size_t l) {
     if (l <= LUAI_MAXSHORTLEN)  /* short string? */
         return internshrstr(L, str, l);
     else {
-        TString *ts;
+        TString *ts=0;
         if (unlikely(l >= (MAX_SIZE - sizeof(TString))/sizeof(char)))
             luaM_toobig(L);
         ts = luaS_createlngstrobj(L, l);
@@ -252,7 +252,7 @@ TString *luaS_newlstr (lua_State *L, const char *str, size_t l) {
  */
 TString *luaS_new (lua_State *L, const char *str) {
     unsigned int i = point2uint(str) % STRCACHE_N;  /* hash */
-    int j;
+    int j=0;
     TString **p = G(L)->strcache[i];
     for (j = 0; j < STRCACHE_M; j++) {
         if (strcmp(str, getstr(p[j])) == 0)  /* hit? */
@@ -268,9 +268,9 @@ TString *luaS_new (lua_State *L, const char *str) {
 
 
 Udata *luaS_newudata (lua_State *L, size_t s, int nuvalue) {
-    Udata *u;
-    int i;
-    GCObject *o;
+    Udata *u=0;
+    int i=0;
+    GCObject *o=0;
     if (unlikely(s > MAX_SIZE - udatamemoffset(nuvalue)))
         luaM_toobig(L);
     o = luaC_newobj(L, LUA_VUSERDATA, sizeudata(nuvalue, s));

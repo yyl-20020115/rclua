@@ -57,7 +57,7 @@ static l_noret lexerror(LexState* ls, const char* msg, int token);
 static void save(LexState* ls, int c) {
     Mbuffer* b = ls->buff;
     if (luaZ_bufflen(b) + 1 > luaZ_sizebuffer(b)) {
-        size_t newsize;
+        size_t newsize = 0;
         if (luaZ_sizebuffer(b) >= MAX_SIZE / 2)
             lexerror(ls, "lexical element too long", 0);
         newsize = luaZ_sizebuffer(b) * 2;
@@ -68,11 +68,13 @@ static void save(LexState* ls, int c) {
 
 
 void luaX_init(lua_State* L) {
-    int i;
+    int i=0;
     TString* e = luaS_newliteral(L, LUA_ENV);  /* create env name */
+    /*RC:YILIN*/
     luaC_fix(L, obj2gco(e));  /* never collect this name */
     for (i = 0; i < NUM_RESERVED; i++) {
         TString* ts = luaS_new(L, luaX_tokens[i]);
+        /*RC:YILIIN*/
         luaC_fix(L, obj2gco(ts));  /* reserved words are never collected */
         ts->extra = cast_byte(i + 1);  /* reserved word */
     }
@@ -129,8 +131,11 @@ l_noret luaX_syntaxerror(LexState* ls, const char* msg) {
  */
 TString* luaX_newstring(LexState* ls, const char* str, size_t l) {
     lua_State* L = ls->L;
-    TValue* o;  /* entry for 'str' */
+    TValue* o=0;  /* entry for 'str' */
     TString* ts = luaS_newlstr(L, str, l);  /* create new string */
+//    /*RC:YILIN*/
+//    luaC_fix(L, obj2gco(ts));
+
     setsvalue2s(L, L->top++, ts);  /* temporarily anchor it in stack */
     o = luaH_set(L, ls->h, s2v(L->top - 1));
     if (isempty(o)) {  /* not in use yet? */
@@ -223,7 +228,7 @@ static int check_next2(LexState* ls, const char* set) {
  ** The caller might have already read an initial dot.
  */
 static int read_numeral(LexState* ls, SemInfo* seminfo) {
-    TValue obj;
+    TValue obj={0};
     const char* expo = "Ee";
     int first = ls->current;
     lua_assert(lisdigit(ls->current));
@@ -240,7 +245,7 @@ static int read_numeral(LexState* ls, SemInfo* seminfo) {
     if (lislalpha(ls->current))  /* is numeral touching a letter? */
         save_and_next(ls);  /* force an error */
     save(ls, '\0');
-    if (luaO_str2num(luaZ_buffer(ls->buff), &obj) == 0)  /* format error? */
+    if (luaO_str2num(ls->L, luaZ_buffer(ls->buff), &obj) == 0)  /* format error? */
         lexerror(ls, "malformed number", TK_FLT);
     if (ttisinteger(&obj)) {
         seminfo->i = ivalue(&obj);
@@ -338,7 +343,7 @@ static int readhexaesc(LexState* ls) {
 
 
 static unsigned long readutf8esc(LexState* ls) {
-    unsigned long r;
+    unsigned long r=0;
     int i = 4;  /* chars to be removed: '\', 'u', '{', and first digit */
     save_and_next(ls);  /* skip 'u' */
     esccheck(ls, ls->current == '{', "missing '{'");
@@ -356,7 +361,7 @@ static unsigned long readutf8esc(LexState* ls) {
 
 
 static void utf8esc(LexState* ls) {
-    char buff[UTF8BUFFSZ];
+    char buff[UTF8BUFFSZ]={0};
     int n = luaO_utf8esc(buff, readutf8esc(ls));
     for (; n > 0; n--)  /* add 'buff' to string */
     save(ls, buff[UTF8BUFFSZ - n]);
@@ -364,7 +369,7 @@ static void utf8esc(LexState* ls) {
 
 
 static int readdecesc(LexState* ls) {
-    int i;
+    int i=0;
     int r = 0;  /* result accumulator */
     for (i = 0; i < 3 && lisdigit(ls->current); i++) {  /* read up to 3 digits */
         r = 10 * r + ls->current - '0';
@@ -535,7 +540,7 @@ static int llex(LexState* ls, SemInfo* seminfo) {
             }
             default: {
                 if (lislalpha(ls->current)) {  /* identifier or reserved word? */
-                    TString* ts;
+                    TString* ts=0;
                     do {
                         save_and_next(ls);
                     } while (lislalnum(ls->current));

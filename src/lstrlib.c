@@ -53,7 +53,7 @@
 
 
 static int str_len (lua_State *L) {
-    size_t l;
+    size_t l=0;
     luaL_checklstring(L, 1, &l);
     lua_pushinteger(L, (lua_Integer)l);
     return 1;
@@ -98,7 +98,7 @@ static size_t getendpos (lua_State *L, int arg, lua_Integer def,
 
 
 static int str_sub (lua_State *L) {
-    size_t l;
+    size_t l=0;
     const char *s = luaL_checklstring(L, 1, &l);
     size_t start = posrelatI(luaL_checkinteger(L, 2), l);
     size_t end = getendpos(L, 3, -1, l);
@@ -110,8 +110,8 @@ static int str_sub (lua_State *L) {
 
 
 static int str_reverse (lua_State *L) {
-    size_t l, i;
-    luaL_Buffer b;
+    size_t l=0, i=0;
+    luaL_Buffer b={0};
     const char *s = luaL_checklstring(L, 1, &l);
     char *p = luaL_buffinitsize(L, &b, l);
     for (i = 0; i < l; i++)
@@ -122,9 +122,9 @@ static int str_reverse (lua_State *L) {
 
 
 static int str_lower (lua_State *L) {
-    size_t l;
-    size_t i;
-    luaL_Buffer b;
+    size_t l=0;
+    size_t i=0;
+    luaL_Buffer b={0};
     const char *s = luaL_checklstring(L, 1, &l);
     char *p = luaL_buffinitsize(L, &b, l);
     for (i=0; i<l; i++)
@@ -135,9 +135,9 @@ static int str_lower (lua_State *L) {
 
 
 static int str_upper (lua_State *L) {
-    size_t l;
-    size_t i;
-    luaL_Buffer b;
+    size_t l=0;
+    size_t i=0;
+    luaL_Buffer b={0};
     const char *s = luaL_checklstring(L, 1, &l);
     char *p = luaL_buffinitsize(L, &b, l);
     for (i=0; i<l; i++)
@@ -148,7 +148,7 @@ static int str_upper (lua_State *L) {
 
 
 static int str_rep (lua_State *L) {
-    size_t l, lsep;
+    size_t l=0, lsep=0;
     const char *s = luaL_checklstring(L, 1, &l);
     lua_Integer n = luaL_checkinteger(L, 2);
     const char *sep = luaL_optlstring(L, 3, "", &lsep);
@@ -157,7 +157,7 @@ static int str_rep (lua_State *L) {
         return luaL_error(L, "resulting string too large");
     else {
         size_t totallen = (size_t)n * l + (size_t)(n - 1) * lsep;
-        luaL_Buffer b;
+        luaL_Buffer b={0};
         char *p = luaL_buffinitsize(L, &b, totallen);
         while (n-- > 1) {  /* first n-1 copies (followed by separator) */
             memcpy(p, s, l * sizeof(char)); p += l;
@@ -174,12 +174,12 @@ static int str_rep (lua_State *L) {
 
 
 static int str_byte (lua_State *L) {
-    size_t l;
+    size_t l=0;
     const char *s = luaL_checklstring(L, 1, &l);
     lua_Integer pi = luaL_optinteger(L, 2, 1);
     size_t posi = posrelatI(pi, l);
     size_t pose = getendpos(L, 3, pi, l);
-    int n, i;
+    int n=0, i=0;
     if (posi > pose) return 0;  /* empty interval; return no values */
     if (pose - posi >= (size_t)INT_MAX)  /* arithmetic overflow? */
         return luaL_error(L, "string slice too long");
@@ -193,8 +193,8 @@ static int str_byte (lua_State *L) {
 
 static int str_char (lua_State *L) {
     int n = lua_gettop(L);  /* number of arguments */
-    int i;
-    luaL_Buffer b;
+    int i=0;
+    luaL_Buffer b={0};
     char *p = luaL_buffinitsize(L, &b, n);
     for (i=1; i<=n; i++) {
         lua_Unsigned c = (lua_Unsigned)luaL_checkinteger(L, i);
@@ -230,7 +230,7 @@ static int writer (lua_State *L, const void *b, size_t size, void *ud) {
 
 
 static int str_dump (lua_State *L) {
-    struct str_Writer state;
+    struct str_Writer state={0};
     int strip = lua_toboolean(L, 2);
     luaL_checktype(L, 1, LUA_TFUNCTION);
     lua_settop(L, 1);  /* ensure function is on the top of the stack */
@@ -266,7 +266,7 @@ static int tonum (lua_State *L, int arg) {
         return 1;
     }
     else {  /* check whether it is a numerical string */
-        size_t len;
+        size_t len=0;
         const char *s = lua_tolstring(L, arg, &len);
         return (s != NULL && lua_stringtonumber(L, s) == len + 1);
     }
@@ -422,7 +422,7 @@ static const char *classend (MatchState *ms, const char *p) {
 
 
 static int match_class (int c, int cl) {
-    int res;
+    int res=0;
     switch (tolower(cl)) {
         case 'a' : res = isalpha(c); break;
         case 'c' : res = iscntrl(c); break;
@@ -530,7 +530,7 @@ static const char *min_expand (MatchState *ms, const char *s,
 
 static const char *start_capture (MatchState *ms, const char *s,
                                   const char *p, int what) {
-    const char *res;
+    const char *res=0;
     int level = ms->level;
     if (level >= LUA_MAXCAPTURES) luaL_error(ms->L, "too many captures");
     ms->capture[level].init = s;
@@ -545,7 +545,7 @@ static const char *start_capture (MatchState *ms, const char *s,
 static const char *end_capture (MatchState *ms, const char *s,
                                 const char *p) {
     int l = capture_to_close(ms);
-    const char *res;
+    const char *res=0;
     ms->capture[l].len = s - ms->capture[l].init;  /* close capture */
     if ((res = match(ms, s, p)) == NULL)  /* match failed? */
         ms->capture[l].len = CAP_UNFINISHED;  /* undo capture */
@@ -554,7 +554,7 @@ static const char *end_capture (MatchState *ms, const char *s,
 
 
 static const char *match_capture (MatchState *ms, const char *s, int l) {
-    size_t len;
+    size_t len=0;
     l = check_capture(ms, l);
     len = ms->capture[l].len;
     if ((size_t)(ms->src_end-s) >= len &&
@@ -672,7 +672,7 @@ static const char *lmemfind (const char *s1, size_t l1,
     if (l2 == 0) return s1;  /* empty strings are everywhere */
     else if (l2 > l1) return NULL;  /* avoids a negative 'l1' */
     else {
-        const char *init;  /* to search for a '*s2' inside 's1' */
+        const char *init=0;  /* to search for a '*s2' inside 's1' */
         l2--;  /* 1st char will be checked by 'memchr' */
         l1 = l1-l2;  /* 's2' cannot be found after that */
         while (l1 > 0 && (init = (const char *)memchr(s1, *s2, l1)) != NULL) {
@@ -721,7 +721,7 @@ static size_t get_onecapture (MatchState *ms, int i, const char *s,
  */
 static void push_onecapture (MatchState *ms, int i, const char *s,
                              const char *e) {
-    const char *cap;
+    const char *cap=0;
     ptrdiff_t l = get_onecapture(ms, i, s, e, &cap);
     if (l != CAP_POSITION)
         lua_pushlstring(ms->L, cap, l);
@@ -730,7 +730,7 @@ static void push_onecapture (MatchState *ms, int i, const char *s,
 
 
 static int push_captures (MatchState *ms, const char *s, const char *e) {
-    int i;
+    int i=0;
     int nlevels = (ms->level == 0 && s) ? 1 : ms->level;
     luaL_checkstack(ms->L, nlevels, "too many captures");
     for (i = 0; i < nlevels; i++)
@@ -768,7 +768,7 @@ static void reprepstate (MatchState *ms) {
 
 
 static int str_find_aux (lua_State *L, int find) {
-    size_t ls, lp;
+    size_t ls=0, lp=0;
     const char *s = luaL_checklstring(L, 1, &ls);
     const char *p = luaL_checklstring(L, 2, &lp);
     size_t init = posrelatI(luaL_optinteger(L, 3, 1), ls) - 1;
@@ -787,7 +787,7 @@ static int str_find_aux (lua_State *L, int find) {
         }
     }
     else {
-        MatchState ms;
+        MatchState ms={0};
         const char *s1 = s + init;
         int anchor = (*p == '^');
         if (anchor) {
@@ -795,7 +795,7 @@ static int str_find_aux (lua_State *L, int find) {
         }
         prepstate(&ms, L, s, ls, p, lp);
         do {
-            const char *res;
+            const char *res=0;
             reprepstate(&ms);
             if ((res=match(&ms, s1, p)) != NULL) {
                 if (find) {
@@ -834,7 +834,7 @@ typedef struct GMatchState {
 
 static int gmatch_aux (lua_State *L) {
     GMatchState *gm = (GMatchState *)lua_touserdata(L, lua_upvalueindex(3));
-    const char *src;
+    const char *src=0;
     gm->ms.L = L;
     for (src = gm->src; src <= gm->ms.src_end; src++) {
         const char *e;
@@ -849,11 +849,11 @@ static int gmatch_aux (lua_State *L) {
 
 
 static int gmatch (lua_State *L) {
-    size_t ls, lp;
+    size_t ls=0, lp=0;
     const char *s = luaL_checklstring(L, 1, &ls);
     const char *p = luaL_checklstring(L, 2, &lp);
     size_t init = posrelatI(luaL_optinteger(L, 3, 1), ls) - 1;
-    GMatchState *gm;
+    GMatchState *gm=0;
     lua_settop(L, 2);  /* keep strings on closure to avoid being collected */
     gm = (GMatchState *)lua_newuserdatauv(L, sizeof(GMatchState), 0);
     if (init > ls)  /* start after string's end? */
@@ -867,10 +867,10 @@ static int gmatch (lua_State *L) {
 
 static void add_s (MatchState *ms, luaL_Buffer *b, const char *s,
                    const char *e) {
-    size_t l;
+    size_t l=0;
     lua_State *L = ms->L;
     const char *news = lua_tolstring(L, 3, &l);
-    const char *p;
+    const char *p=0;
     while ((p = (char *)memchr(news, L_ESC, l)) != NULL) {
         luaL_addlstring(b, news, p - news);
         p++;  /* skip ESC */
@@ -879,7 +879,7 @@ static void add_s (MatchState *ms, luaL_Buffer *b, const char *s,
         else if (*p == '0')  /* '%0' */
             luaL_addlstring(b, s, e - s);
         else if (isdigit(uchar(*p))) {  /* '%n' */
-            const char *cap;
+            const char *cap=0;
             ptrdiff_t resl = get_onecapture(ms, *p - '1', s, e, &cap);
             if (resl == CAP_POSITION)
                 luaL_addvalue(b);  /* add position to accumulated result */
@@ -905,7 +905,7 @@ static int add_value (MatchState *ms, luaL_Buffer *b, const char *s,
     lua_State *L = ms->L;
     switch (tr) {
         case LUA_TFUNCTION: {  /* call the function */
-            int n;
+            int n=0;
             lua_pushvalue(L, 3);  /* push the function */
             n = push_captures(ms, s, e);  /* all captures as arguments */
             lua_call(L, n, 1);  /* call it */
@@ -937,7 +937,7 @@ static int add_value (MatchState *ms, luaL_Buffer *b, const char *s,
 
 
 static int str_gsub (lua_State *L) {
-    size_t srcl, lp;
+    size_t srcl=0, lp=0;
     const char *src = luaL_checklstring(L, 1, &srcl);  /* subject */
     const char *p = luaL_checklstring(L, 2, &lp);  /* pattern */
     const char *lastmatch = NULL;  /* end of last match */
@@ -946,8 +946,8 @@ static int str_gsub (lua_State *L) {
     int anchor = (*p == '^');
     lua_Integer n = 0;  /* replacement count */
     int changed = 0;  /* change flag */
-    MatchState ms;
-    luaL_Buffer b;
+    MatchState ms={0};
+    luaL_Buffer b={0};
     luaL_argexpected(L, tr == LUA_TNUMBER || tr == LUA_TSTRING ||
                      tr == LUA_TFUNCTION || tr == LUA_TTABLE, 3,
                      "string/function/table");
@@ -1027,7 +1027,7 @@ static int num2straux (char *buff, int sz, lua_Number x) {
         return l_sprintf(buff, sz, LUA_NUMBER_FMT "x0p+0", (LUAI_UACNUMBER)x);
     }
     else {
-        int e;
+        int e=0;
         lua_Number m = l_mathop(frexp)(x, &e);  /* 'x' fraction and exponent */
         int n = 0;  /* character count */
         if (m < 0) {  /* is number negative? */
@@ -1054,7 +1054,7 @@ static int lua_number2strx (lua_State *L, char *buff, int sz,
                             const char *fmt, lua_Number x) {
     int n = num2straux(buff, sz, x);
     if (fmt[SIZELENMOD] == 'A') {
-        int i;
+        int i=0;
         for (i = 0; i < n; i++)
         buff[i] = toupper(uchar(buff[i]));
     }
@@ -1128,7 +1128,7 @@ static void addquoted (luaL_Buffer *b, const char *s, size_t len) {
  ** (NaN cannot be expressed as a numeral, so we write '(0/0)' for it.)
  */
 static int quotefloat (lua_State *L, char *buff, lua_Number n) {
-    const char *s;  /* for the fixed representations */
+    const char *s=0;  /* for the fixed representations */
     if (n == (lua_Number)HUGE_VAL)  /* inf? */
         s = "1e9999";
     else if (n == -(lua_Number)HUGE_VAL)  /* -inf? */
@@ -1154,14 +1154,14 @@ static int quotefloat (lua_State *L, char *buff, lua_Number n) {
 static void addliteral (lua_State *L, luaL_Buffer *b, int arg) {
     switch (lua_type(L, arg)) {
         case LUA_TSTRING: {
-            size_t len;
+            size_t len=0;
             const char *s = lua_tolstring(L, arg, &len);
             addquoted(b, s, len);
             break;
         }
         case LUA_TNUMBER: {
             char *buff = luaL_prepbuffsize(b, MAX_ITEM);
-            int nb;
+            int nb=0;
             if (!lua_isinteger(L, arg))  /* float? */
                 nb = quotefloat(L, buff, lua_tonumber(L, arg));
             else {  /* integers */
@@ -1224,10 +1224,10 @@ static void addlenmod (char *form, const char *lenmod) {
 static int str_format (lua_State *L) {
     int top = lua_gettop(L);
     int arg = 1;
-    size_t sfl;
+    size_t sfl=0;
     const char *strfrmt = luaL_checklstring(L, arg, &sfl);
     const char *strfrmt_end = strfrmt+sfl;
-    luaL_Buffer b;
+    luaL_Buffer b={0};
     luaL_buffinit(L, &b);
     while (strfrmt < strfrmt_end) {
         if (*strfrmt != L_ESC)
@@ -1235,7 +1235,7 @@ static int str_format (lua_State *L) {
         else if (*++strfrmt == L_ESC)
             luaL_addchar(&b, *strfrmt++);  /* %% */
         else { /* format item */
-            char form[MAX_FORMAT];  /* to store the format ('%...') */
+            char form[MAX_FORMAT]={0};  /* to store the format ('%...') */
             int maxitem = MAX_ITEM;
             char *buff = luaL_prepbuffsize(&b, maxitem);  /* to put formatted item */
             int nb = 0;  /* number of bytes in added item */
@@ -1285,7 +1285,7 @@ static int str_format (lua_State *L) {
                     break;
                 }
                 case 's': {
-                    size_t l;
+                    size_t l=0;
                     const char *s = luaL_tolstring(L, arg, &l);
                     if (form[2] == '\0')  /* no modifiers? */
                         luaL_addvalue(&b);  /* keep entire string */
@@ -1517,7 +1517,7 @@ static KOption getdetails (Header *h, size_t totalsize,
 static void packint (luaL_Buffer *b, lua_Unsigned n,
                      int islittle, int size, int neg) {
     char *buff = luaL_prepbuffsize(b, size);
-    int i;
+    int i=0;
     buff[islittle ? 0 : size - 1] = (char)(n & MC);  /* first byte */
     for (i = 1; i < size; i++) {
         n >>= NB;
@@ -1550,8 +1550,8 @@ static void copywithendian (volatile char *dest, volatile const char *src,
 
 
 static int str_pack (lua_State *L) {
-    luaL_Buffer b;
-    Header h;
+    luaL_Buffer b={0};
+    Header h={0};
     const char *fmt = luaL_checkstring(L, 1);  /* format string */
     int arg = 1;  /* current argument to pack */
     size_t totalsize = 0;  /* accumulate total size of result */
@@ -1559,7 +1559,7 @@ static int str_pack (lua_State *L) {
     lua_pushnil(L);  /* mark to separate arguments from string buffer */
     luaL_buffinit(L, &b);
     while (*fmt != '\0') {
-        int size, ntoalign;
+        int size=0, ntoalign=0;
         KOption opt = getdetails(&h, totalsize, &fmt, &size, &ntoalign);
         totalsize += ntoalign + size;
         while (ntoalign-- > 0)
@@ -1584,7 +1584,7 @@ static int str_pack (lua_State *L) {
                 break;
             }
             case Kfloat: {  /* floating-point options */
-                volatile Ftypes u;
+                volatile Ftypes u={0};
                 char *buff = luaL_prepbuffsize(&b, size);
                 lua_Number n = luaL_checknumber(L, arg);  /* get argument */
                 if (size == sizeof(u.f)) u.f = (float)n;  /* copy it into 'u' */
@@ -1596,7 +1596,7 @@ static int str_pack (lua_State *L) {
                 break;
             }
             case Kchar: {  /* fixed-size string */
-                size_t len;
+                size_t len=0;
                 const char *s = luaL_checklstring(L, arg, &len);
                 luaL_argcheck(L, len <= (size_t)size, arg,
                               "string longer than given size");
@@ -1606,7 +1606,7 @@ static int str_pack (lua_State *L) {
                 break;
             }
             case Kstring: {  /* strings with length count */
-                size_t len;
+                size_t len=0;
                 const char *s = luaL_checklstring(L, arg, &len);
                 luaL_argcheck(L, size >= (int)sizeof(size_t) ||
                               len < ((size_t)1 << (size * NB)),
@@ -1617,7 +1617,7 @@ static int str_pack (lua_State *L) {
                 break;
             }
             case Kzstr: {  /* zero-terminated string */
-                size_t len;
+                size_t len=0;
                 const char *s = luaL_checklstring(L, arg, &len);
                 luaL_argcheck(L, strlen(s) == len, arg, "string contains zeros");
                 luaL_addlstring(&b, s, len);
@@ -1637,12 +1637,12 @@ static int str_pack (lua_State *L) {
 
 
 static int str_packsize (lua_State *L) {
-    Header h;
+    Header h={0};
     const char *fmt = luaL_checkstring(L, 1);  /* format string */
     size_t totalsize = 0;  /* accumulate total size of result */
     initheader(L, &h);
     while (*fmt != '\0') {
-        int size, ntoalign;
+        int size=0, ntoalign=0;
         KOption opt = getdetails(&h, totalsize, &fmt, &size, &ntoalign);
         luaL_argcheck(L, opt != Kstring && opt != Kzstr, 1,
                       "variable-length format");
@@ -1667,7 +1667,7 @@ static int str_packsize (lua_State *L) {
 static lua_Integer unpackint (lua_State *L, const char *str,
                               int islittle, int size, int issigned) {
     lua_Unsigned res = 0;
-    int i;
+    int i=0;
     int limit = (size  <= SZINT) ? size : SZINT;
     for (i = limit - 1; i >= 0; i--) {
         res <<= NB;
@@ -1691,16 +1691,16 @@ static lua_Integer unpackint (lua_State *L, const char *str,
 
 
 static int str_unpack (lua_State *L) {
-    Header h;
+    Header h={0};
     const char *fmt = luaL_checkstring(L, 1);
-    size_t ld;
+    size_t ld=0;
     const char *data = luaL_checklstring(L, 2, &ld);
     size_t pos = posrelatI(luaL_optinteger(L, 3, 1), ld) - 1;
     int n = 0;  /* number of results */
     luaL_argcheck(L, pos <= ld, 3, "initial position out of string");
     initheader(L, &h);
     while (*fmt != '\0') {
-        int size, ntoalign;
+        int size=0, ntoalign=0;
         KOption opt = getdetails(&h, pos, &fmt, &size, &ntoalign);
         luaL_argcheck(L, (size_t)ntoalign + size <= ld - pos, 2,
                       "data string too short");
@@ -1717,8 +1717,8 @@ static int str_unpack (lua_State *L) {
                 break;
             }
             case Kfloat: {
-                volatile Ftypes u;
-                lua_Number num;
+                volatile Ftypes u={0};
+                lua_Number num=0;
                 copywithendian(u.buff, data + pos, size, h.islittle);
                 if (size == sizeof(u.f)) num = (lua_Number)u.f;
                 else if (size == sizeof(u.d)) num = (lua_Number)u.d;

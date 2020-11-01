@@ -91,7 +91,7 @@ static const char *utf8_decode (const char *s, utfint *val, int strict) {
  */
 static int utflen (lua_State *L) {
     lua_Integer n = 0;  /* counter for the number of characters */
-    size_t len;  /* string length in bytes */
+    size_t len=0;  /* string length in bytes */
     const char *s = luaL_checklstring(L, 1, &len);
     lua_Integer posi = u_posrelat(luaL_optinteger(L, 2, 1), len);
     lua_Integer posj = u_posrelat(luaL_optinteger(L, 3, -1), len);
@@ -120,13 +120,13 @@ static int utflen (lua_State *L) {
  ** characters that start in the range [i,j]
  */
 static int codepoint (lua_State *L) {
-    size_t len;
+    size_t len=0;
     const char *s = luaL_checklstring(L, 1, &len);
     lua_Integer posi = u_posrelat(luaL_optinteger(L, 2, 1), len);
     lua_Integer pose = u_posrelat(luaL_optinteger(L, 3, posi), len);
     int lax = lua_toboolean(L, 4);
-    int n;
-    const char *se;
+    int n=0;
+    const char *se=0;
     luaL_argcheck(L, posi >= 1, 2, "out of bounds");
     luaL_argcheck(L, pose <= (lua_Integer)len, 3, "out of bounds");
     if (posi > pose) return 0;  /* empty interval; return no values */
@@ -163,8 +163,8 @@ static int utfchar (lua_State *L) {
     if (n == 1)  /* optimize common case of single char */
         pushutfchar(L, 1);
     else {
-        int i;
-        luaL_Buffer b;
+        int i=0;
+        luaL_Buffer b={0};
         luaL_buffinit(L, &b);
         for (i = 1; i <= n; i++) {
             pushutfchar(L, i);
@@ -181,7 +181,7 @@ static int utfchar (lua_State *L) {
  **   position 'i' starts; 0 means character at 'i'.
  */
 static int byteoffset (lua_State *L) {
-    size_t len;
+    size_t len=0;
     const char *s = luaL_checklstring(L, 1, &len);
     lua_Integer n  = luaL_checkinteger(L, 2);
     lua_Integer posi = (n >= 0) ? 1 : len + 1;
@@ -222,7 +222,7 @@ static int byteoffset (lua_State *L) {
 
 
 static int iter_aux (lua_State *L, int strict) {
-    size_t len;
+    size_t len=0;
     const char *s = luaL_checklstring(L, 1, &len);
     lua_Integer n = lua_tointeger(L, 2) - 1;
     if (n < 0)  /* first iteration? */
@@ -234,7 +234,7 @@ static int iter_aux (lua_State *L, int strict) {
     if (n >= (lua_Integer)len)
         return 0;  /* no more codepoints */
     else {
-        utfint code;
+        utfint code=0;
         const char *next = utf8_decode(s + n, &code, strict);
         if (next == NULL)
             return luaL_error(L, "invalid UTF-8 code");

@@ -60,14 +60,14 @@ static void checktab (lua_State *L, int arg, int what) {
 
 static int tinsert (lua_State *L) {
     lua_Integer e = aux_getn(L, 1, TAB_RW) + 1;  /* first empty element */
-    lua_Integer pos;  /* where to insert new element */
+    lua_Integer pos=0;  /* where to insert new element */
     switch (lua_gettop(L)) {
         case 2: {  /* called with only 2 arguments */
             pos = e;  /* insert new element at the end */
             break;
         }
         case 3: {
-            lua_Integer i;
+            lua_Integer i=0;
             pos = luaL_checkinteger(L, 2);  /* 2nd argument is the position */
             /* check whether 'pos' is in [1, e] */
             luaL_argcheck(L, (lua_Unsigned)pos - 1u < (lua_Unsigned)e, 2,
@@ -119,7 +119,7 @@ static int tmove (lua_State *L) {
     checktab(L, 1, TAB_R);
     checktab(L, tt, TAB_W);
     if (e >= f) {  /* otherwise, nothing to move */
-        lua_Integer n, i;
+        lua_Integer n=0, i=0;
         luaL_argcheck(L, f > 0 || e < LUA_MAXINTEGER + f, 3,
                       "too many elements to move");
         n = e - f + 1;  /* number of elements to move */
@@ -153,9 +153,9 @@ static void addfield (lua_State *L, luaL_Buffer *b, lua_Integer i) {
 
 
 static int tconcat (lua_State *L) {
-    luaL_Buffer b;
+    luaL_Buffer b={0};
     lua_Integer last = aux_getn(L, 1, TAB_R);
-    size_t lsep;
+    size_t lsep=0;
     const char *sep = luaL_optlstring(L, 2, "", &lsep);
     lua_Integer i = luaL_optinteger(L, 3, 1);
     last = luaL_optinteger(L, 4, last);
@@ -178,7 +178,7 @@ static int tconcat (lua_State *L) {
  */
 
 static int tpack (lua_State *L) {
-    int i;
+    int i=0;
     int n = lua_gettop(L);  /* number of elements to pack */
     lua_createtable(L, n, 1,0);  /* create result table */
     lua_insert(L, 1);  /* put it at index 1 */
@@ -191,7 +191,7 @@ static int tpack (lua_State *L) {
 
 
 static int tunpack (lua_State *L) {
-    lua_Unsigned n;
+    lua_Unsigned n=0;
     lua_Integer i = luaL_optinteger(L, 2, 1);
     lua_Integer e = luaL_opt(L, luaL_checkinteger, 3, luaL_len(L, 1));
     if (i > e) return 0;  /* empty range */
@@ -244,7 +244,7 @@ typedef unsigned int IdxT;
 static unsigned int l_randomizePivot (void) {
     clock_t c = clock();
     time_t t = time(NULL);
-    unsigned int buff[sof(c) + sof(t)];
+    unsigned int buff[sof(c) + sof(t)]={0};
     unsigned int i, rnd = 0;
     memcpy(buff, &c, sof(c) * sizeof(unsigned int));
     memcpy(buff + sof(c), &t, sof(t) * sizeof(unsigned int));
@@ -274,7 +274,7 @@ static int sort_comp (lua_State *L, int a, int b) {
     if (lua_isnil(L, 2))  /* no function? */
         return lua_compare(L, a, b, LUA_OPLT);  /* a < b */
     else {  /* function */
-        int res;
+        int res=0;
         lua_pushvalue(L, 2);    /* push function */
         lua_pushvalue(L, a-1);  /* -1 to compensate function */
         lua_pushvalue(L, b-2);  /* -2 to compensate function and 'a' */
@@ -343,8 +343,8 @@ static IdxT choosePivot (IdxT lo, IdxT up, unsigned int rnd) {
 static void auxsort (lua_State *L, IdxT lo, IdxT up,
                      unsigned int rnd) {
     while (lo < up) {  /* loop for tail recursion */
-        IdxT p;  /* Pivot index */
-        IdxT n;  /* to be used later */
+        IdxT p=0;  /* Pivot index */
+        IdxT n=0;  /* to be used later */
         /* sort elements 'lo', 'p', and 'up' */
         lua_geti(L, 1, lo);
         lua_geti(L, 1, up);

@@ -30,7 +30,7 @@ static lua_State *getco (lua_State *L) {
  ** cases or -1 for errors.
  */
 static int auxresume (lua_State *L, lua_State *co, int narg) {
-    int status, nres;
+    int status=0, nres=0;
     if (!lua_checkstack(co, narg)) {
         lua_pushliteral(L, "too many arguments to resume");
         return -1;  /* error flag */
@@ -55,7 +55,7 @@ static int auxresume (lua_State *L, lua_State *co, int narg) {
 
 static int luaB_coresume (lua_State *L) {
     lua_State *co = getco(L);
-    int r;
+    int r=0;
     r = auxresume(L, co, lua_gettop(L) - 1);
     if (r < 0) {
         lua_pushboolean(L, 0);
@@ -89,7 +89,7 @@ static int luaB_auxwrap (lua_State *L) {
 
 
 static int luaB_cocreate (lua_State *L) {
-    lua_State *NL;
+    lua_State *NL=0;
     luaL_checktype(L, 1, LUA_TFUNCTION);
     NL = lua_newthread(L);
     lua_pushvalue(L, 1);  /* move function to top */
@@ -127,7 +127,7 @@ static int auxstatus (lua_State *L, lua_State *co) {
             case LUA_YIELD:
                 return COS_YIELD;
             case LUA_OK: {
-                lua_Debug ar;
+                lua_Debug ar={0};
                 if (lua_getstack(co, 0, &ar))  /* does it have frames? */
                     return COS_NORM;  /* it is running */
                 else if (lua_gettop(co) == 0)

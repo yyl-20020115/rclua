@@ -173,8 +173,8 @@ static lua_CFunction lsys_sym (lua_State *L, void *lib, const char *sym) {
  ** of LUA_EXEC_DIR with the executable's path.
  */
 static void setprogdir (lua_State *L) {
-    char buff[MAX_PATH + 1];
-    char *lb;
+    char buff[MAX_PATH + 1]={0};
+    char *lb=0;
     DWORD nsize = sizeof(buff)/sizeof(char);
     DWORD n = GetModuleFileNameA(NULL, buff, nsize);  /* get exec. name */
     if (n == 0 || n == nsize || (lb = strrchr(buff, '\\')) == NULL)
@@ -191,7 +191,7 @@ static void setprogdir (lua_State *L) {
 
 static void pusherror (lua_State *L) {
     int error = GetLastError();
-    char buffer[128];
+    char buffer[128]={0};
     if (FormatMessageA(FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_FROM_SYSTEM,
                        NULL, error, 0, buffer, sizeof(buffer)/sizeof(char), NULL))
         lua_pushstring(L, buffer);
@@ -281,7 +281,7 @@ static lua_CFunction lsys_sym (lua_State *L, void *lib, const char *sym) {
  ** return registry.LUA_NOENV as a boolean
  */
 static int noenv (lua_State *L) {
-    int b;
+    int b=0;
     lua_getfield(L, LUA_REGISTRYINDEX, "LUA_NOENV");
     b = lua_toboolean(L, -1);
     lua_pop(L, 1);  /* remove value */
@@ -295,7 +295,7 @@ static int noenv (lua_State *L) {
 static void setpath (lua_State *L, const char *fieldname,
                      const char *envname,
                      const char *dft) {
-    const char *dftmark;
+    const char *dftmark=0;
     const char *nver = lua_pushfstring(L, "%s%s", envname, LUA_VERSUFFIX);
     const char *path = getenv(nver);  /* try versioned name */
     if (path == NULL)  /* no versioned environment variable? */
@@ -306,7 +306,7 @@ static void setpath (lua_State *L, const char *fieldname,
         lua_pushstring(L, path);  /* nothing to change */
     else {  /* path contains a ";;": insert default path in its place */
         size_t len = strlen(path);
-        luaL_Buffer b;
+        luaL_Buffer b={0};
         luaL_buffinit(L, &b);
         if (path < dftmark) {  /* is there a prefix before ';;'? */
             luaL_addlstring(&b, path, dftmark - path);  /* add it */
@@ -331,7 +331,7 @@ static void setpath (lua_State *L, const char *fieldname,
  ** return registry.CLIBS[path]
  */
 static void *checkclib (lua_State *L, const char *path) {
-    void *plib;
+    void *plib=0;
     lua_getfield(L, LUA_REGISTRYINDEX, CLIBS);
     lua_getfield(L, -1, path);
     plib = lua_touserdata(L, -1);  /* plib = CLIBS[path] */
@@ -443,7 +443,7 @@ static int readable (const char *filename) {
  ** NULL when list ends.
  */
 static const char *getnextfilename (char **path, char *end) {
-    char *sep;
+    char *sep=0;
     char *name = *path;
     if (name == end)
         return NULL;  /* no more names */
@@ -467,7 +467,7 @@ static const char *getnextfilename (char **path, char *end) {
  **	no file 'blublu.so'
  */
 static void pusherrornotfound (lua_State *L, const char *path) {
-    luaL_Buffer b;
+    luaL_Buffer b={0};
     luaL_buffinit(L, &b);
     luaL_addstring(&b, "no file '");
     luaL_addgsub(&b, path, LUA_PATH_SEP, "'\n\tno file '");
@@ -480,10 +480,10 @@ static const char *searchpath (lua_State *L, const char *name,
                                const char *path,
                                const char *sep,
                                const char *dirsep) {
-    luaL_Buffer buff;
-    char *pathname;  /* path with name inserted */
-    char *endpathname;  /* its end */
-    const char *filename;
+    luaL_Buffer buff={0};
+    char *pathname=0;  /* path with name inserted */
+    char *endpathname=0;  /* its end */
+    const char *filename=0;
     /* separator is non-empty and appears in 'name'? */
     if (*sep != '\0' && strchr(name, *sep) != NULL)
         name = luaL_gsub(L, name, sep, dirsep);  /* replace it by 'dirsep' */
@@ -520,7 +520,7 @@ static int ll_searchpath (lua_State *L) {
 static const char *findfile (lua_State *L, const char *name,
                              const char *pname,
                              const char *dirsep) {
-    const char *path;
+    const char *path=0;
     lua_getfield(L, lua_upvalueindex(1), pname);
     path = lua_tostring(L, -1);
     if (path == NULL)
@@ -541,7 +541,7 @@ static int checkload (lua_State *L, int stat, const char *filename) {
 
 
 static int searcher_Lua (lua_State *L) {
-    const char *filename;
+    const char *filename=0;
     const char *name = luaL_checkstring(L, 1);
     filename = findfile(L, name, "path", LUA_LSUBSEP);
     if (filename == NULL) return 1;  /* module not found in this path */
@@ -558,8 +558,8 @@ static int searcher_Lua (lua_State *L) {
  ** look for a function named "luaopen_modname".
  */
 static int loadfunc (lua_State *L, const char *filename, const char *modname) {
-    const char *openfunc;
-    const char *mark;
+    const char *openfunc=0;
+    const char *mark=0;
     modname = luaL_gsub(L, modname, ".", LUA_OFSEP);
     mark = strchr(modname, *LUA_IGMARK);
     if (mark) {
@@ -584,10 +584,10 @@ static int searcher_C (lua_State *L) {
 
 
 static int searcher_Croot (lua_State *L) {
-    const char *filename;
+    const char *filename=0;
     const char *name = luaL_checkstring(L, 1);
     const char *p = strchr(name, '.');
-    int stat;
+    int stat=0;
     if (p == NULL) return 0;  /* is root */
     lua_pushlstring(L, name, p - name);
     filename = findfile(L, lua_tostring(L, -1), "cpath", LUA_CSUBSEP);
@@ -620,8 +620,8 @@ static int searcher_preload (lua_State *L) {
 
 
 static void findloader (lua_State *L, const char *name) {
-    int i;
-    luaL_Buffer msg;  /* to build error message */
+    int i=0;
+    luaL_Buffer msg={0};  /* to build error message */
     /* push 'package.searchers' to index 3 in the stack */
     if (lua_getfield(L, lua_upvalueindex(1), "searchers") != LUA_TTABLE)
         luaL_error(L, "'package.searchers' must be a table");
@@ -707,7 +707,7 @@ static const luaL_Reg ll_funcs[] = {
 static void createsearcherstable (lua_State *L) {
     static const lua_CFunction searchers[] =
     {searcher_preload, searcher_Lua, searcher_C, searcher_Croot, NULL};
-    int i;
+    int i=0;
     /* create 'searchers' table */
     lua_createtable(L, sizeof(searchers)/sizeof(searchers[0]) - 1, 0,0);
     /* fill it with predefined searchers */

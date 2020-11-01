@@ -136,7 +136,7 @@ static int msghandler (lua_State *L) {
  ** and C-signal handler. Used to run all chunks.
  */
 static int docall (lua_State *L, int narg, int nres) {
-    int status;
+    int status=0;
     int base = lua_gettop(L) - narg;  /* function index */
     lua_pushcfunction(L, msghandler);  /* push message handler */
     lua_insert(L, base);  /* put it under function and args */
@@ -164,7 +164,7 @@ static void print_version (void) {
  ** If there is no script name, assume interpreter's name as base.
  */
 static void createargtable (lua_State *L, char **argv, int argc, int script) {
-    int i, narg;
+    int i=0, narg=0;
     if (script == argc) script = 0;  /* no script name? */
     narg = argc - (script + 1);  /* number of positive indices */
     lua_createtable(L, narg, script + 1,1);
@@ -197,7 +197,7 @@ static int dostring (lua_State *L, const char *s, const char *name) {
  ** with the given name.
  */
 static int dolibrary (lua_State *L, const char *name) {
-    int status;
+    int status=0;
     lua_getglobal(L, "require");
     lua_pushstring(L, name);
     status = docall(L, 1, 1);  /* call 'require(name)' */
@@ -211,7 +211,7 @@ static int dolibrary (lua_State *L, const char *name) {
  ** Push on the stack the contents of table 'arg' from 1 to #arg
  */
 static int pushargs (lua_State *L) {
-    int i, n;
+    int i=0, n=0;
     if (lua_getglobal(L, "arg") != LUA_TTABLE)
         luaL_error(L, "'arg' is not a table");
     n = (int)luaL_len(L, -1);
@@ -224,7 +224,7 @@ static int pushargs (lua_State *L) {
 
 
 static int handle_script (lua_State *L, char **argv) {
-    int status;
+    int status=0;
     const char *fname = argv[0];
     if (strcmp(fname, "-") == 0 && strcmp(argv[-1], "--") != 0)
         fname = NULL;  /* stdin */
@@ -253,7 +253,7 @@ static int handle_script (lua_State *L, char **argv) {
  */
 static int collectargs (char **argv, int *first) {
     int args = 0;
-    int i;
+    int i=0;
     for (i = 1; argv[i] != NULL; i++) {
         *first = i;
         if (argv[i][0] != '-')  /* not an option? */
@@ -306,13 +306,13 @@ static int collectargs (char **argv, int *first) {
  ** Returns 0 if some code raises an error.
  */
 static int runargs (lua_State *L, char **argv, int n) {
-    int i;
+    int i=0;
     for (i = 1; i < n; i++) {
         int option = argv[i][1];
         lua_assert(argv[i][0] == '-');  /* already checked */
         switch (option) {
             case 'e':  case 'l': {
-                int status;
+                int status=0;
                 const char *extra = argv[i] + 2;  /* both options need an argument */
                 if (*extra == '\0') extra = argv[++i];
                 lua_assert(extra != NULL);
@@ -425,7 +425,7 @@ fgets(b, LUA_MAXINPUT, stdin) != NULL)  /* get line */
  ** Returns the string to be used as a prompt by the interpreter.
  */
 static const char *get_prompt (lua_State *L, int firstline) {
-    const char *p;
+    const char *p=0;
     lua_getglobal(L, firstline ? "_PROMPT" : "_PROMPT2");
     p = lua_tostring(L, -1);
     if (p == NULL) p = (firstline ? LUA_PROMPT : LUA_PROMPT2);
@@ -444,7 +444,7 @@ static const char *get_prompt (lua_State *L, int firstline) {
  */
 static int incomplete (lua_State *L, int status) {
     if (status == LUA_ERRSYNTAX) {
-        size_t lmsg;
+        size_t lmsg=0;
         const char *msg = lua_tolstring(L, -1, &lmsg);
         if (lmsg >= marklen && strcmp(msg + lmsg - marklen, EOFMARK) == 0) {
             lua_pop(L, 1);
@@ -459,9 +459,9 @@ static int incomplete (lua_State *L, int status) {
  ** Prompt the user, read a line, and push it into the Lua stack.
  */
 static int pushline (lua_State *L, int firstline) {
-    char buffer[LUA_MAXINPUT];
+    char buffer[LUA_MAXINPUT]={0};
     char *b = buffer;
-    size_t l;
+    size_t l=0;
     const char *prmt = get_prompt(L, firstline);
     int readstatus = lua_readline(L, b, prmt);
     if (readstatus == 0)
@@ -503,7 +503,7 @@ static int addreturn (lua_State *L) {
  */
 static int multiline (lua_State *L) {
     for (;;) {  /* repeat until gets a complete statement */
-        size_t len;
+        size_t len=0;
         const char *line = lua_tolstring(L, 1, &len);  /* get what it has */
         int status = luaL_loadbuffer(L, line, len, "=stdin");  /* try it */
         if (!incomplete(L, status) || !pushline(L, 0)) {
@@ -524,7 +524,7 @@ static int multiline (lua_State *L) {
  ** in the top of the stack.
  */
 static int loadline (lua_State *L) {
-    int status;
+    int status=0;
     lua_settop(L, 0);
     if (!pushline(L, 1))
         return -1;  /* no input */
@@ -557,7 +557,7 @@ static void l_print (lua_State *L) {
  ** print any results.
  */
 static void doREPL (lua_State *L) {
-    int status;
+    int status=0;
     const char *oldprogname = progname;
     progname = NULL;  /* no 'progname' on errors in interactive mode */
     lua_initreadline(L);
@@ -582,7 +582,7 @@ static void doREPL (lua_State *L) {
 static int pmain (lua_State *L) {
     int argc = (int)lua_tointeger(L, 1);
     char **argv = (char **)lua_touserdata(L, 2);
-    int script;
+    int script=0;
     int args = collectargs(argv, &script);
     luaL_checkversion(L);  /* check that interpreter has correct version */
     if (argv[0] && argv[0][0]) progname = argv[0];

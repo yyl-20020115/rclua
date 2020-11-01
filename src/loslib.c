@@ -144,7 +144,7 @@ e = (e == -1); }
 
 static int os_execute (lua_State *L) {
     const char *cmd = luaL_optstring(L, 1, NULL);
-    int stat;
+    int stat=0;
     errno = 0;
     stat = system(cmd);
     if (cmd != NULL)
@@ -170,8 +170,8 @@ static int os_rename (lua_State *L) {
 
 
 static int os_tmpname (lua_State *L) {
-    char buff[LUA_TMPNAMBUFSIZE];
-    int err;
+    char buff[LUA_TMPNAMBUFSIZE]={0};
+    int err=0;
     lua_tmpnam(buff, err);
     if (err)
         return luaL_error(L, "unable to generate a unique filename");
@@ -244,7 +244,7 @@ static void setallfields (lua_State *L, struct tm *stm) {
 
 
 static int getboolfield (lua_State *L, const char *key) {
-    int res;
+    int res=0;
     res = (lua_getfield(L, -1, key) == LUA_TNIL) ? -1 : lua_toboolean(L, -1);
     lua_pop(L, 1);
     return res;
@@ -252,7 +252,7 @@ static int getboolfield (lua_State *L, const char *key) {
 
 
 static int getfield (lua_State *L, const char *key, int d, int delta) {
-    int isnum;
+    int isnum=0;
     int t = lua_getfield(L, -1, key);  /* get field and its type */
     lua_Integer res = lua_tointegerx(L, -1, &isnum);
     if (!isnum) {  /* field is not an integer? */
@@ -305,11 +305,11 @@ static time_t l_checktime (lua_State *L, int arg) {
 
 
 static int os_date (lua_State *L) {
-    size_t slen;
+    size_t slen=0;
     const char *s = luaL_optlstring(L, 1, "%c", &slen);
     time_t t = luaL_opt(L, l_checktime, 2, time(NULL));
     const char *se = s + slen;  /* 's' end */
-    struct tm tmr, *stm;
+    struct tm tmr={0}, *stm=0;
     if (*s == '!') {  /* UTC? */
         stm = l_gmtime(&t, &tmr);
         s++;  /* skip '!' */
@@ -324,15 +324,15 @@ static int os_date (lua_State *L) {
         setallfields(L, stm);
     }
     else {
-        char cc[4];  /* buffer for individual conversion specifiers */
-        luaL_Buffer b;
+        char cc[4]={0};  /* buffer for individual conversion specifiers */
+        luaL_Buffer b={0};
         cc[0] = '%';
         luaL_buffinit(L, &b);
         while (s < se) {
             if (*s != '%')  /* not a conversion specifier? */
                 luaL_addchar(&b, *s++);
             else {
-                size_t reslen;
+                size_t reslen=0;
                 char *buff = luaL_prepbuffsize(&b, SIZETIMEFMT);
                 s++;  /* skip '%' */
                 s = checkoption(L, s, se - s, cc + 1);  /* copy specifier to 'cc' */
@@ -347,11 +347,11 @@ static int os_date (lua_State *L) {
 
 
 static int os_time (lua_State *L) {
-    time_t t;
+    time_t t=0;
     if (lua_isnoneornil(L, 1))  /* called without args? */
         t = time(NULL);  /* get current time */
     else {
-        struct tm ts;
+        struct tm ts={0};
         luaL_checktype(L, 1, LUA_TTABLE);
         lua_settop(L, 1);  /* make sure table is at the top */
         ts.tm_year = getfield(L, "year", -1, 1900);
@@ -395,7 +395,7 @@ static int os_setlocale (lua_State *L) {
 
 
 static int os_exit (lua_State *L) {
-    int status;
+    int status=0;
     if (lua_isboolean(L, 1))
         status = (lua_toboolean(L, 1) ? EXIT_SUCCESS : EXIT_FAILURE);
     else

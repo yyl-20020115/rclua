@@ -149,7 +149,7 @@ typedef luaL_Stream LStream;
 
 
 static int io_type (lua_State *L) {
-    LStream *p;
+    LStream *p=0;
     luaL_checkany(L, 1);
     p = (LStream *)luaL_testudata(L, 1, LUA_FILEHANDLE);
     if (p == NULL)
@@ -293,7 +293,7 @@ static int io_tmpfile (lua_State *L) {
 
 
 static FILE *getiofile (lua_State *L, const char *findex) {
-    LStream *p;
+    LStream *p=0;
     lua_getfield(L, LUA_REGISTRYINDEX, findex);
     p = (LStream *)lua_touserdata(L, -1);
     if (isclosed(p))
@@ -371,7 +371,7 @@ static int f_lines (lua_State *L) {
  ** closed as the state at the exit of a generic for).
  */
 static int io_lines (lua_State *L) {
-    int toclose;
+    int toclose=0;
     if (lua_isnone(L, 1)) lua_pushnil(L);  /* at least one argument */
     if (lua_isnil(L, 1)) {  /* no file name? */
         lua_getfield(L, LUA_REGISTRYINDEX, IO_INPUT);  /* get default input */
@@ -462,7 +462,7 @@ static int readdigits (RN *rn, int hex) {
  ** correct and to convert it to a Lua number.
  */
 static int read_number (lua_State *L, FILE *f) {
-    RN rn;
+    RN rn={0};
     int count = 0;
     int hex = 0;
     char decp[2];
@@ -504,7 +504,7 @@ static int test_eof (lua_State *L, FILE *f) {
 
 
 static int read_line (lua_State *L, FILE *f, int chop) {
-    luaL_Buffer b;
+    luaL_Buffer b={0};
     int c=EOF;
     luaL_buffinit(L, &b);
     do {  /* may need to read several chunks to get whole line */
@@ -525,8 +525,8 @@ static int read_line (lua_State *L, FILE *f, int chop) {
 
 
 static void read_all (lua_State *L, FILE *f) {
-    size_t nr;
-    luaL_Buffer b;
+    size_t nr=0;
+    luaL_Buffer b={0};
     luaL_buffinit(L, &b);
     do {  /* read file in chunks of LUAL_BUFFERSIZE bytes */
         char *p = luaL_prepbuffer(&b);
@@ -538,9 +538,9 @@ static void read_all (lua_State *L, FILE *f) {
 
 
 static int read_chars (lua_State *L, FILE *f, size_t n) {
-    size_t nr;  /* number of chars actually read */
-    char *p;
-    luaL_Buffer b;
+    size_t nr=0;  /* number of chars actually read */
+    char *p=0;
+    luaL_Buffer b={0};
     luaL_buffinit(L, &b);
     p = luaL_prepbuffsize(&b, n);  /* prepare buffer to read whole block */
     nr = fread(p, sizeof(char), n, f);  /* try to read 'n' chars */
@@ -552,7 +552,7 @@ static int read_chars (lua_State *L, FILE *f, size_t n) {
 
 static int g_read (lua_State *L, FILE *f, int first) {
     int nargs = lua_gettop(L) - 1;
-    int n, success;
+    int n=0, success=0;
     clearerr(f);
     if (nargs == 0) {  /* no arguments? */
         success = read_line(L, f, 1);
@@ -615,7 +615,7 @@ static int f_read (lua_State *L) {
  */
 static int io_readline (lua_State *L) {
     LStream *p = (LStream *)lua_touserdata(L, lua_upvalueindex(1));
-    int i;
+    int i=0;
     int n = (int)lua_tointeger(L, lua_upvalueindex(2));
     if (isclosed(p))  /* file is already closed? */
         return luaL_error(L, "file is already closed");

@@ -1,6 +1,9 @@
 #ifndef lrc_h
 #define lrc_h
 #include "llimits.h"
+
+extern int enable_gc;
+
 /*
  ** Union of all Lua values
  */

@@ -68,7 +68,7 @@ static lu_byte loadByte (LoadState *S) {
 
 static size_t loadUnsigned (LoadState *S, size_t limit) {
     size_t x = 0;
-    int b;
+    int b=0;
     limit >>= 7;
     do {
         b = loadByte(S);
@@ -91,14 +91,14 @@ static int loadInt (LoadState *S) {
 
 
 static lua_Number loadNumber (LoadState *S) {
-    lua_Number x;
+    lua_Number x=0;
     loadVar(S, x);
     return x;
 }
 
 
 static lua_Integer loadInteger (LoadState *S) {
-    lua_Integer x;
+    lua_Integer x=0;
     loadVar(S, x);
     return x;
 }
@@ -109,12 +109,12 @@ static lua_Integer loadInteger (LoadState *S) {
  */
 static TString *loadStringN (LoadState *S, Proto *p) {
     lua_State *L = S->L;
-    TString *ts;
+    TString *ts=0;
     size_t size = loadSize(S);
     if (size == 0)  /* no string? */
         return NULL;
     else if (--size <= LUAI_MAXSHORTLEN) {  /* short string? */
-        char buff[LUAI_MAXSHORTLEN];
+        char buff[LUAI_MAXSHORTLEN]={0};
         loadVector(S, buff, size);  /* load string into buffer */
         ts = luaS_newlstr(L, buff, size);  /* create string */
     }
@@ -150,7 +150,7 @@ static void loadFunction(LoadState *S, Proto *f, TString *psource);
 
 
 static void loadConstants (LoadState *S, Proto *f) {
-    int i;
+    int i=0;
     int n = loadInt(S);
     f->k = luaM_newvectorchecked(S->L, n, TValue);
     f->sizek = n;
@@ -186,7 +186,7 @@ static void loadConstants (LoadState *S, Proto *f) {
 
 
 static void loadProtos (LoadState *S, Proto *f) {
-    int i;
+    int i=0;
     int n = loadInt(S);
     f->p = luaM_newvectorchecked(S->L, n, Proto *);
     f->sizep = n;
@@ -201,7 +201,7 @@ static void loadProtos (LoadState *S, Proto *f) {
 
 
 static void loadUpvalues (LoadState *S, Proto *f) {
-    int i, n;
+    int i=0, n=0;
     n = loadInt(S);
     f->upvalues = luaM_newvectorchecked(S->L, n, Upvaldesc);
     f->sizeupvalues = n;
@@ -215,7 +215,7 @@ static void loadUpvalues (LoadState *S, Proto *f) {
 
 
 static void loadDebug (LoadState *S, Proto *f) {
-    int i, n;
+    int i=0, n=0;
     n = loadInt(S);
     f->lineinfo = luaM_newvectorchecked(S->L, n, ls_byte);
     f->sizelineinfo = n;
@@ -264,7 +264,7 @@ static void loadFunction (LoadState *S, Proto *f, TString *psource) {
 
 
 static void checkliteral (LoadState *S, const char *s, const char *msg) {
-    char buff[sizeof(LUA_SIGNATURE) + sizeof(LUAC_DATA)]; /* larger than both */
+    char buff[sizeof(LUA_SIGNATURE) + sizeof(LUAC_DATA)]={0}; /* larger than both */
     size_t len = strlen(s);
     loadVector(S, buff, len);
     if (memcmp(s, buff, len) != 0)
@@ -302,8 +302,8 @@ static void checkHeader (LoadState *S) {
  ** Load precompiled chunk.
  */
 LClosure *luaU_undump(lua_State *L, ZIO *Z, const char *name) {
-    LoadState S;
-    LClosure *cl;
+    LoadState S={0};
+    LClosure *cl=0;
     if (*name == '@' || *name == '=')
         S.name = name + 1;
     else if (*name == LUA_SIGNATURE[0])

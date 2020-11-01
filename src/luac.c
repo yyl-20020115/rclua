@@ -38,7 +38,7 @@ static int stripping=0;			/* strip debug information? */
 static char Output[]={ OUTPUT };	/* default output file name */
 static const char* output=Output;	/* actual output file name */
 static const char* progname=PROGNAME;	/* actual program name */
-static TString **tmname;
+static TString **tmname=0;
 
 static void fatal(const char* message)
 {
@@ -76,7 +76,7 @@ static void usage(const char* message)
 
 static int doargs(int argc, char* argv[])
 {
-    int i;
+    int i=0;
     int version=0;
     if (argv[0]!=NULL && *argv[0]!=0) progname=argv[0];
     for (i=1; i<argc; i++)
@@ -147,7 +147,7 @@ static const Proto* combine(lua_State* L, int n)
         return toproto(L,-1);
     else
     {
-        Proto* f;
+        Proto* f=0;
         int i=n;
         if (lua_load(L,reader,&i,"=(" PROGNAME ")",NULL)!=LUA_OK) fatal(lua_tostring(L,-1));
         f=toproto(L,-1);
@@ -171,8 +171,8 @@ static int pmain(lua_State* L)
 {
     int argc=(int)lua_tointeger(L,1);
     char** argv=(char**)lua_touserdata(L,2);
-    const Proto* f;
-    int i;
+    const Proto* f=0;
+    int i=0;
     tmname=G(L)->tmname;
     if (!lua_checkstack(L,argc)) fatal("too many input files");
     for (i=0; i<argc; i++)
@@ -200,7 +200,7 @@ int main(int argc, char* argv[])
 int c_main(int argc, char* argv[])
 #endif
 {
-    lua_State* L;
+    lua_State* L=0;
     int i=doargs(argc,argv);
     argc-=i; argv+=i;
     if (argc<=0) usage("no input files given");
@@ -312,7 +312,7 @@ static void PrintConstant(const Proto* f, int i)
             break;
         case LUA_VNUMFLT:
         {
-            char buff[100];
+            char buff[256]={0};
             sprintf(buff,LUA_NUMBER_FMT,fltvalue(o));
             printf("%s",buff);
             if (buff[strspn(buff,"-0123456789")]=='\0') printf(".0");
@@ -339,7 +339,7 @@ static void PrintConstant(const Proto* f, int i)
 static void PrintCode(const Proto* f)
 {
     const Instruction* code=f->code;
-    int pc,n=f->sizecode;
+    int pc=0,n=f->sizecode;
     for (pc=0; pc<n; pc++)
     {
         Instruction i=code[pc];
@@ -692,7 +692,7 @@ static void PrintHeader(const Proto* f)
 
 static void PrintDebug(const Proto* f)
 {
-    int i,n;
+    int i=0,n=0;
     n=f->sizek;
     printf("constants (%d) for %p:\n",n,VOID(f));
     for (i=0; i<n; i++)
@@ -720,7 +720,7 @@ static void PrintDebug(const Proto* f)
 
 static void PrintFunction(const Proto* f, int full)
 {
-    int i,n=f->sizep;
+    int i=0,n=f->sizep;
     PrintHeader(f);
     PrintCode(f);
     if (full) PrintDebug(f);

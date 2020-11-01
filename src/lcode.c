@@ -183,7 +183,7 @@ void luaK_concat (FuncState *fs, int *l1, int l2) {
         *l1 = l2;  /* 'l1' points to 'l2' */
     else {
         int list = *l1;
-        int next;
+        int next=0;
         while ((next = getjump(fs, list)) != NO_JUMP)  /* find last element */
             list = next;
         fixjump(fs, list, l2);  /* last element links to 'l2' */
@@ -204,7 +204,7 @@ int luaK_jump (FuncState *fs) {
  ** Code a 'return' instruction
  */
 void luaK_ret (FuncState *fs, int first, int nret) {
-    OpCode op;
+    OpCode op = 0;
     switch (nret) {
         case 0: op = OP_RETURN0; break;
         case 1: op = OP_RETURN1; break;
@@ -550,7 +550,7 @@ static int addk (FuncState *fs, TValue *key, TValue *v) {
     lua_State *L = fs->ls->L;
     Proto *f = fs->f;
     TValue *idx = luaH_set(L, fs->ls->h, key);  /* index scanner table */
-    int k, oldsize;
+    int k=0, oldsize=0;
     if (ttisinteger(idx)) {  /* is there an index there? */
         k = cast_int(ivalue(idx));
         /* correct value? (warning: must distinguish floats from integers!) */
@@ -584,7 +584,7 @@ static int addk (FuncState *fs, TValue *key, TValue *v) {
  ** Add a string to list of constants and return its index.
  */
 static int stringK (FuncState *fs, TString *s) {
-    TValue o;
+    TValue o={0};
     int n = 0;
     /*RC:YILIN*/
     setsvalue_to_new_addref(fs->ls->L, &o, s);
@@ -601,7 +601,7 @@ static int stringK (FuncState *fs, TString *s) {
  ** are no "precision" problems.
  */
 static int luaK_intK (FuncState *fs, lua_Integer n) {
-    TValue k, o;
+    TValue k={0}, o={0};
     setpvalue(&k, cast_voidp(cast_sizet(n)));
     setivalue(&o, n);
     return addk(fs, &k, &o);
@@ -611,7 +611,7 @@ static int luaK_intK (FuncState *fs, lua_Integer n) {
  ** Add a float to list of constants and return its index.
  */
 static int luaK_numberK (FuncState *fs, lua_Number r) {
-    TValue o;
+    TValue o={0};
     setfltvalue(&o, r);
     return addk(fs, &o, &o);  /* use number itself as key */
 }
@@ -621,7 +621,7 @@ static int luaK_numberK (FuncState *fs, lua_Number r) {
  ** Add a false to list of constants and return its index.
  */
 static int boolF (FuncState *fs) {
-    TValue o;
+    TValue o={0};
     setbfvalue(&o);
     return addk(fs, &o, &o);  /* use boolean itself as key */
 }
@@ -631,7 +631,7 @@ static int boolF (FuncState *fs) {
  ** Add a true to list of constants and return its index.
  */
 static int boolT (FuncState *fs) {
-    TValue o;
+    TValue o={0};
     setbtvalue(&o);
     return addk(fs, &o, &o);  /* use boolean itself as key */
 }
@@ -641,7 +641,7 @@ static int boolT (FuncState *fs) {
  ** Add nil to list of constants and return its index.
  */
 static int nilK (FuncState *fs) {
-    TValue k, v;
+    TValue k={0}, v={0};
     int n = 0;
     setnilvalue(&v);
     /*RC:YILIN*/
@@ -680,8 +680,9 @@ void luaK_int (FuncState *fs, int reg, lua_Integer i) {
 
 
 static void luaK_float (FuncState *fs, int reg, lua_Number f) {
-    lua_Integer fi;
-    if (luaV_flttointeger(f, &fi, F2Ieq) && fitsBx(fi))
+    lua_Integer fi=0;
+    /*RC:YILIN*/
+    if (luaV_flttointeger(fs->ls->L,f, &fi, F2Ieq) && fitsBx(fi))
         luaK_codeAsBx(fs, OP_LOADF, reg, cast_int(fi));
     else
         luaK_codek(fs, reg, luaK_numberK(fs, f));
@@ -995,7 +996,7 @@ void luaK_exp2val (FuncState *fs, expdesc *e) {
  */
 static int luaK_exp2K (FuncState *fs, expdesc *e) {
     if (!hasjumps(e)) {
-        int info;
+        int info=0;
         switch (e->k) {  /* move constants to 'k' */
             case VTRUE: info = boolT(fs); break;
             case VFALSE: info = boolF(fs); break;
@@ -1081,7 +1082,7 @@ void luaK_storevar (FuncState *fs, expdesc *var, expdesc *ex) {
  ** Emit SELF instruction (convert expression 'e' into 'e:key(e,').
  */
 void luaK_self (FuncState *fs, expdesc *e, expdesc *key) {
-    int ereg;
+    int ereg=0;
     luaK_exp2anyreg(fs, e);
     ereg = e->u.info;  /* register where 'e' was placed */
     freeexp(fs, e);
@@ -1129,7 +1130,7 @@ static int jumponcond (FuncState *fs, expdesc *e, int cond) {
  ** Emit code to go through if 'e' is true, jump otherwise.
  */
 void luaK_goiftrue (FuncState *fs, expdesc *e) {
-    int pc;  /* pc of new jump */
+    int pc=0;  /* pc of new jump */
     luaK_dischargevars(fs, e);
     switch (e->k) {
         case VJMP: {  /* condition? */
@@ -1156,7 +1157,7 @@ void luaK_goiftrue (FuncState *fs, expdesc *e) {
  ** Emit code to go through if 'e' is false, jump otherwise.
  */
 void luaK_goiffalse (FuncState *fs, expdesc *e) {
-    int pc;  /* pc of new jump */
+    int pc=0;  /* pc of new jump */
     luaK_dischargevars(fs, e);
     switch (e->k) {
         case VJMP: {
@@ -1250,11 +1251,11 @@ static int isSCint (expdesc *e) {
  ** Check whether expression 'e' is a literal integer or float in
  ** proper range to fit in a register (sB or sC).
  */
-static int isSCnumber (expdesc *e, int *pi, int *isfloat) {
-    lua_Integer i;
+static int isSCnumber (lua_State* L, expdesc *e, int *pi, int *isfloat) {
+    lua_Integer i=0;
     if (e->k == VKINT)
         i = e->u.ival;
-    else if (e->k == VKFLT && luaV_flttointeger(e->u.nval, &i, F2Ieq))
+    else if (e->k == VKFLT && luaV_flttointeger(L, e->u.nval, &i, F2Ieq))
         *isfloat = 1;
     else
         return 0;  /* not a number */
@@ -1309,12 +1310,12 @@ void luaK_indexed (FuncState *fs, expdesc *t, expdesc *k) {
  ** Bitwise operations need operands convertible to integers; division
  ** operations cannot have 0 as divisor.
  */
-static int validop (int op, TValue *v1, TValue *v2) {
+static int validop (lua_State* L, int op, TValue *v1, TValue *v2) {
     switch (op) {
         case LUA_OPBAND: case LUA_OPBOR: case LUA_OPBXOR:
         case LUA_OPSHL: case LUA_OPSHR: case LUA_OPBNOT: {  /* conversion errors */
-            lua_Integer i;
-            return (tointegerns(v1, &i) && tointegerns(v2, &i));
+            lua_Integer i=0;
+            return (tointegerns(L,v1, &i) && tointegerns(L,v2, &i));
         }
         case LUA_OPDIV: case LUA_OPIDIV: case LUA_OPMOD:  /* division by 0 */
             return (nvalue(v2) != 0);
@@ -1329,8 +1330,9 @@ static int validop (int op, TValue *v1, TValue *v2) {
  */
 static int constfolding (FuncState *fs, int op, expdesc *e1,
                          const expdesc *e2) {
-    TValue v1, v2, res;
-    if (!tonumeral(e1, &v1) || !tonumeral(e2, &v2) || !validop(op, &v1, &v2))
+    TValue v1={0}, v2={0}, res={0};
+    /*RC:YILIN*/
+    if (!tonumeral(e1, &v1) || !tonumeral(e2, &v2) || !validop(fs->ls->L,op, &v1, &v2))
         return 0;  /* non-numeric operands or not safe to fold */
     luaO_rawarith(fs->ls->L, op, &v1, &v2, &res);  /* does operation */
     if (ttisinteger(&res)) {
@@ -1481,8 +1483,8 @@ static void codecommutative (FuncState *fs, BinOpr op,
 static void codebitwise (FuncState *fs, BinOpr opr,
                          expdesc *e1, expdesc *e2, int line) {
     int flip = 0;
-    int v2;
-    OpCode op;
+    int v2=0;
+    OpCode op=0;
     if (e1->k == VKINT && luaK_exp2RK(fs, e1)) {
         swapexps(e1, e2);  /* 'e2' will be the constant operand */
         flip = 1;
@@ -1505,16 +1507,18 @@ static void codebitwise (FuncState *fs, BinOpr opr,
  ** 'isfloat' tells whether the original value was a float.
  */
 static void codeorder (FuncState *fs, OpCode op, expdesc *e1, expdesc *e2) {
-    int r1, r2;
-    int im;
+    int r1=0, r2=0;
+    int im=0;
     int isfloat = 0;
-    if (isSCnumber(e2, &im, &isfloat)) {
+    /*RC:YILIN*/
+    if (isSCnumber(fs->ls->L,e2, &im, &isfloat)) {
         /* use immediate operand */
         r1 = luaK_exp2anyreg(fs, e1);
         r2 = im;
         op = cast(OpCode, (op - OP_LT) + OP_LTI);
     }
-    else if (isSCnumber(e1, &im, &isfloat)) {
+    /*RC:YILIN*/
+    else if (isSCnumber(fs->ls->L,e1, &im, &isfloat)) {
         /* transform (A < B) to (B > A) and (A <= B) to (B >= A) */
         r1 = luaK_exp2anyreg(fs, e2);
         r2 = im;
@@ -1535,16 +1539,17 @@ static void codeorder (FuncState *fs, OpCode op, expdesc *e1, expdesc *e2) {
  ** 'e1' was already put as RK by 'luaK_infix'.
  */
 static void codeeq (FuncState *fs, BinOpr opr, expdesc *e1, expdesc *e2) {
-    int r1, r2;
-    int im;
+    int r1=0, r2=0;
+    int im=0;
     int isfloat = 0;  /* not needed here, but kept for symmetry */
-    OpCode op;
+    OpCode op=0;
     if (e1->k != VNONRELOC) {
         lua_assert(e1->k == VK || e1->k == VKINT || e1->k == VKFLT);
         swapexps(e1, e2);
     }
     r1 = luaK_exp2anyreg(fs, e1);  /* 1st expression must be in register */
-    if (isSCnumber(e2, &im, &isfloat)) {
+    /*RC:YILIN*/
+    if (isSCnumber(fs->ls->L,e2, &im, &isfloat)) {
         op = OP_EQI;
         r2 = im;  /* immediate operand */
     }
@@ -1619,8 +1624,9 @@ void luaK_infix (FuncState *fs, BinOpr op, expdesc *v) {
         }
         case OPR_LT: case OPR_LE:
         case OPR_GT: case OPR_GE: {
-            int dummy, dummy2;
-            if (!isSCnumber(v, &dummy, &dummy2))
+            int dummy=0, dummy2=0;
+            /*RC:YILIN*/
+            if (!isSCnumber(fs->ls->L,v, &dummy, &dummy2))
                 luaK_exp2anyreg(fs, v);
             /* else keep numeral, which may be an immediate operand */
             break;
@@ -1782,7 +1788,7 @@ void luaK_setlist (FuncState *fs, int base, int nelems, int tostore) {
  ** return the final target of a jump (skipping jumps to jumps)
  */
 static int finaltarget (Instruction *code, int i) {
-    int count;
+    int count=0;
     for (count = 0; count < 100; count++) {  /* avoid infinite loops */
         Instruction pc = code[i];
         if (GET_OPCODE(pc) != OP_JMP)
@@ -1799,7 +1805,7 @@ static int finaltarget (Instruction *code, int i) {
  ** optimizations and adjustments.
  */
 void luaK_finish (FuncState *fs) {
-    int i;
+    int i=0;
     Proto *p = fs->f;
     for (i = 0; i < fs->pc; i++) {
         Instruction *pc = &p->code[i];
