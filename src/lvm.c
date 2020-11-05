@@ -204,9 +204,9 @@ static int forlimit(lua_State* L, lua_Integer init, const TValue* lim,
  **   ra + 3 : control variable
  */
 static int forprep(lua_State* L, StkId ra) {
-    TValue* pinit = s2v(ra);
+    TValue* pinit  = s2v(ra + 0);
     TValue* plimit = s2v(ra + 1);
-    TValue* pstep = s2v(ra + 2);
+    TValue* pstep  = s2v(ra + 2);
     if (ttisinteger(pinit) && ttisinteger(pstep)) { /* integer loop? */
         lua_Integer init = ivalue(pinit);
         lua_Integer step = ivalue(pstep);
@@ -264,13 +264,14 @@ static int forprep(lua_State* L, StkId ra) {
  ** written online with opcode OP_FORLOOP, for performance.)
  */
 static int floatforloop(StkId ra) {
-    lua_Number step = fltvalue(s2v(ra + 2));
+    lua_Number step  = fltvalue(s2v(ra + 2));
     lua_Number limit = fltvalue(s2v(ra + 1));
-    lua_Number idx = fltvalue(s2v(ra));  /* internal index */
+    lua_Number idx   = fltvalue(s2v(ra + 0));  /* internal index */
     idx = luai_numadd(L, idx, step);  /* increment index */
-    if (luai_numlt(0, step) ? luai_numle(idx, limit)
+    if (luai_numlt(0, step)
+        ? luai_numle(idx, limit)
         : luai_numle(limit, idx)) {
-        chgfltvalue(s2v(ra), idx);  /* update internal index */
+        chgfltvalue(s2v(ra + 0), idx);  /* update internal index */
         setfltvalue(s2v(ra + 3), idx);  /* and control variable */
         return 1;  /* jump back */
     }
@@ -381,9 +382,9 @@ static int l_strcmp(const TString* ls, const TString* rs) {
     const char* r = getstr(rs);
     size_t lr = tsslen(rs);
     for (;;) {  /* for each segment */
-        int temp = strcoll(l, r);
-        if (temp != 0)  /* not equal? */
-            return temp;  /* done */
+        int t = strcoll(l, r);
+        if (t != 0)  /* not equal? */
+            return t;  /* done */
         else {  /* strings are equal up to a '\0' */
             size_t len = strlen(l);  /* index of first '\0' in both strings */
             if (len == lr)  /* 'rs' is finished? */
@@ -915,7 +916,7 @@ pc++; setfltvalue(s2v(ra), fop(L, nb, fimm)); \
    ** with two register operands.
    */
 #define op_arithf_aux(L,v1,v2,fop) {  \
-lua_Number n1=0.0; lua_Number n2=0.0;  \
+lua_Number n1=0; lua_Number n2=0;  \
 if (tonumberns(L,v1, n1) && tonumberns(L,v2, n2)) {  \
 pc++; setfltvalue(s2v(ra), fop(L, n1, n2));  \
 }}
@@ -974,7 +975,7 @@ op_arith_aux(L, v1, v2, iop, fop); }
 #define op_bitwiseK(L,op) {  \
 TValue *v1 = vRB(i);  \
 TValue *v2 = KC(i);  \
-lua_Integer i1;  \
+lua_Integer i1 = 0;  \
 lua_Integer i2 = ivalue(v2);  \
 if (tointegerns(L,v1, &i1)) {  \
 pc++; setivalue(s2v(ra), op(i1, i2));  \
@@ -987,7 +988,7 @@ pc++; setivalue(s2v(ra), op(i1, i2));  \
 #define op_bitwise(L,op) {  \
 TValue *v1 = vRB(i);  \
 TValue *v2 = vRC(i);  \
-lua_Integer i1; lua_Integer i2;  \
+lua_Integer i1 = 0; lua_Integer i2 = 0;  \
 if (tointegerns(L,v1, &i1) && tointegerns(L,v2, &i2)) {  \
 pc++; setivalue(s2v(ra), op(i1, i2));  \
 }}
@@ -999,7 +1000,7 @@ pc++; setivalue(s2v(ra), op(i1, i2));  \
            ** integers.
            */
 #define op_order(L,opi,opn,other) {  \
-int cond;  \
+int cond = 0;  \
 TValue *rb = vRB(i);  \
 if (ttisinteger(s2v(ra)) && ttisinteger(rb)) {  \
 lua_Integer ia = ivalue(s2v(ra));  \
@@ -1018,7 +1019,7 @@ docondjump(); }
             ** always small enough to have an exact representation as a float.)
             */
 #define op_orderI(L,opi,opf,inv,tm) {  \
-int cond;  \
+int cond = 0;  \
 int im = GETARG_sB(i);  \
 if (ttisinteger(s2v(ra)))  \
 cond = opi(ivalue(s2v(ra)), im);  \
@@ -1192,7 +1193,7 @@ tailcall:
                 vmbreak;
             }
             vmcase(OP_LOADKX) {
-                TValue* rb;
+                TValue* rb = 0;
                 rb = k + GETARG_Ax(*pc); pc++;
                 setobj2s(L, ra, rb);
                 vmbreak;

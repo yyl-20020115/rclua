@@ -667,7 +667,7 @@ static lu_mem propagateall(global_State* g) {
  **
  */
 static void convergeephemerons(global_State* g) {
-    int changed;
+    int changed = 0;
     int dir = 0;
     do {
         GCObject* w = 0;

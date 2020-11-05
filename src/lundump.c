@@ -177,6 +177,7 @@ static void loadConstants(LoadState* S, Proto* f) {
             break;
         case LUA_VSHRSTR:
         case LUA_VLNGSTR:
+                /*RC:YILIN*/
             setsvalue_to_new_addref(S->L, o, loadString(S, f));
             break;
         default: lua_assert(0);
