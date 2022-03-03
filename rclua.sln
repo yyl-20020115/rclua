@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30517.126
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rclua", "rclua.vcxproj", "{EA49AB5F-0012-4F6A-B768-8C1AD5A17434}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{198F18CB-7951-4B7D-9D77-36D9C91F75F6}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{198F18CB-7951-4B7D-9D77-36D9C91F75F6}"
 	ProjectSection(SolutionItems) = preProject
 		mytest.lua = mytest.lua
 	EndProjectSection
@@ -71,6 +71,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "specific", "specific", "{16
 		test\specific\verybig.lua = test\specific\verybig.lua
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rclua_unit_test", "rclua_unit_test\rclua_unit_test.vcxproj", "{503CB029-2F0F-4294-8F3E-EC8E60134B2C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rclua_lib", "rclua_lib.vcxproj", "{789AE6B2-12E6-49C6-99F3-C0DFA3943079}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -87,6 +91,22 @@ Global
 		{EA49AB5F-0012-4F6A-B768-8C1AD5A17434}.Release|x64.Build.0 = Release|x64
 		{EA49AB5F-0012-4F6A-B768-8C1AD5A17434}.Release|x86.ActiveCfg = Release|Win32
 		{EA49AB5F-0012-4F6A-B768-8C1AD5A17434}.Release|x86.Build.0 = Release|Win32
+		{503CB029-2F0F-4294-8F3E-EC8E60134B2C}.Debug|x64.ActiveCfg = Debug|x64
+		{503CB029-2F0F-4294-8F3E-EC8E60134B2C}.Debug|x64.Build.0 = Debug|x64
+		{503CB029-2F0F-4294-8F3E-EC8E60134B2C}.Debug|x86.ActiveCfg = Debug|Win32
+		{503CB029-2F0F-4294-8F3E-EC8E60134B2C}.Debug|x86.Build.0 = Debug|Win32
+		{503CB029-2F0F-4294-8F3E-EC8E60134B2C}.Release|x64.ActiveCfg = Release|x64
+		{503CB029-2F0F-4294-8F3E-EC8E60134B2C}.Release|x64.Build.0 = Release|x64
+		{503CB029-2F0F-4294-8F3E-EC8E60134B2C}.Release|x86.ActiveCfg = Release|Win32
+		{503CB029-2F0F-4294-8F3E-EC8E60134B2C}.Release|x86.Build.0 = Release|Win32
+		{789AE6B2-12E6-49C6-99F3-C0DFA3943079}.Debug|x64.ActiveCfg = Debug|x64
+		{789AE6B2-12E6-49C6-99F3-C0DFA3943079}.Debug|x64.Build.0 = Debug|x64
+		{789AE6B2-12E6-49C6-99F3-C0DFA3943079}.Debug|x86.ActiveCfg = Debug|Win32
+		{789AE6B2-12E6-49C6-99F3-C0DFA3943079}.Debug|x86.Build.0 = Debug|Win32
+		{789AE6B2-12E6-49C6-99F3-C0DFA3943079}.Release|x64.ActiveCfg = Release|x64
+		{789AE6B2-12E6-49C6-99F3-C0DFA3943079}.Release|x64.Build.0 = Release|x64
+		{789AE6B2-12E6-49C6-99F3-C0DFA3943079}.Release|x86.ActiveCfg = Release|Win32
+		{789AE6B2-12E6-49C6-99F3-C0DFA3943079}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -156,7 +156,7 @@ check_exp(getage(o) == (f), (o)->marked ^= ((f)^(t)))
 condchangemem(L,pre,pos); }
 
 /* more often than not, 'pre'/'pos' are empty */
-#define luaC_checkGC(L)		luaC_condGC(L,(void)0,(void)0)
+#define luaC_checkGC(L)		/*luaC_condGC(L,(void)0,(void)0)*/
 
 
 #define luaC_barrier(L,p,v) (  \
