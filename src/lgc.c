@@ -458,9 +458,9 @@ static int traverseephemeron(global_State* g, Table* h, int inv) {
     size_t nsize = sizenode(h);
     /* traverse array part */
     for (i = 0; i < asize; i++) {
-        if (valiswhite(&h->array[i])) {
+        if (valiswhite(&h->_array[i])) {
             marked = 1;
-            reallymarkobject(g, gcvalue(&h->array[i]));
+            reallymarkobject(g, gcvalue(&h->_array[i]));
         }
     }
     /* traverse hash part; if 'inv', traverse descending
@@ -499,7 +499,7 @@ static void traversestrongtable(global_State* g, Table* h) {
     unsigned int i = 0;
     unsigned int asize = luaH_realasize(h);
     for (i = 0; i < asize; i++)  /* traverse array part */
-        markvalue(g, &h->array[i]);
+        markvalue(g, &h->_array[i]);
     for (n = gnode(h, 0); n < limit; n++) {  /* traverse hash part */
         if (isempty(gval(n)))  /* entry is empty? */
             clearkey(n);  /* clear its key */
@@ -724,7 +724,7 @@ static void clearbyvalues(global_State* g, GCObject* l, GCObject* f) {
         unsigned int i = 0;
         unsigned int asize = luaH_realasize(h);
         for (i = 0; i < asize; i++) {
-            TValue* o = &h->array[i];
+            TValue* o = &h->_array[i];
             if (iscleared(g, gcvalueN(o)))  /* value was collected? */
                 setempty(o);  /* remove entry */
         }

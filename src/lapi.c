@@ -757,8 +757,7 @@ LUA_API void lua_createtable(lua_State* L, int narray, int nrec, int fix) {
     t = luaH_new(L, fix);
 
     /*RC:YILIN*/
-    sethvalue_subref(L, s2v(L->top), t);
-
+    sethvalue2s(L, (L->top), t);
     if (!enable_gc)
     {
         /*RC:YILIN*/
@@ -830,30 +829,45 @@ LUA_API int lua_getiuservalue(lua_State* L, int idx, int n) {
  /*
   ** t[k] = value at the top of the stack (where 'k' is a string)
   */
-static void auxsetstr(lua_State* L, const TValue* t, const char* k) {
+static void auxsetstr(lua_State* L, const TValue* table, const char* k) {
     const TValue* slot = 0;
     TString* str = luaS_new(L, k);
     api_checknelems(L, 1);
-    if (luaV_fastget(L, t, str, slot, luaH_getstr)) {
-        luaV_finishfastset(L, t, slot, s2v(L->top - 1));
+    if (luaV_fastget(L, table, str, slot, luaH_getstr)) {
+        luaV_finishfastset(L, table, slot, s2v(L->top - 1));
         L->top--;  /* pop value */
     }
     else {
         setsvalue2s(L, L->top, str);  /* push 'str' (to make it a TValue) */
         api_incr_top(L);
-        luaV_finishset(L, t, s2v(L->top - 1), s2v(L->top - 2), slot);
+        luaV_finishset(L, table, s2v(L->top - 1), s2v(L->top - 2), slot);
         L->top -= 2;  /* pop value and key */
     }
     lua_unlock(L);  /* lock done by caller */
 }
 
 
-LUA_API void lua_setglobal(lua_State* L, const char* name) {
-    Table* reg = hvalue(&G(L)->l_registry);
-    lua_lock(L);  /* unlock done in 'auxsetstr' */
-    auxsetstr(L, luaH_getint(reg, LUA_RIDX_GLOBALS), name);
-}
+/*
+** Get the global table in the registry. Since all predefined
+** indices in the registry were inserted right when the registry
+** was created and never removed, they must always be in the array
+** part of the registry.
+*/
+#define getGtable(L)  \
+	(&hvalue(&G(L)->l_registry)->_array[LUA_RIDX_GLOBALS - 1])
 
+//LUA_API void lua_setglobal(lua_State* L, const char* name) {
+//    Table* reg = hvalue(&G(L)->l_registry);
+//    lua_lock(L);  /* unlock done in 'auxsetstr' */
+//    auxsetstr(L, luaH_getint(reg, LUA_RIDX_GLOBALS), name);
+//}
+
+LUA_API void lua_setglobal(lua_State* L, const char* name) {
+    const TValue* G;
+    lua_lock(L);  /* unlock done in 'auxsetstr' */
+    G = getGtable(L);
+    auxsetstr(L, G, name);
+}
 
 LUA_API void lua_settable(lua_State* L, int idx) {
     TValue* t = 0;

@@ -1825,7 +1825,7 @@ tailcall:
                     luaH_resizearray(L, h, last);  /* preallocate it at once */
                 for (; n > 0; n--) {
                     TValue* val = s2v(ra + n);
-                    setobj2t(L, &h->array[last - 1], val);
+                    setobj2t(L, &h->_array[last - 1], val);
                     last--;
                     luaC_barrierback(L, obj2gco(h), val);
                 }

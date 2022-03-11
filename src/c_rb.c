@@ -152,7 +152,7 @@ struct cstl_rb_node*
 cstl_rb_find(struct cstl_rb* pTree, const void* key) {
     struct cstl_rb_node* x = pTree->root;
 
-    while (x != rb_sentinel(pTree)) {
+    while (x != rb_sentinel(pTree)&&x->key!=0) {
         const void *cur_key = cstl_object_get_data(x->key);
         int c = pTree->compare_fn(key, cur_key);
         if (c == 0) {

@@ -306,10 +306,10 @@ int luaH_next(lua_State* L, Table* t, StkId key) {
     unsigned int asize = luaH_realasize(t);
     unsigned int i = findindex(L, t, s2v(key), asize);  /* find original key */
     for (; i < asize; i++) {  /* try first array part */
-        if (!isempty(&t->array[i])) {  /* a non-empty entry? */
+        if (!isempty(&t->_array[i])) {  /* a non-empty entry? */
             /*RC:YILIN*/
             setivalue_subref(L, s2v(key), i + 1);
-            setobj2s(L, key + 1, &t->array[i]);
+            setobj2s(L, key + 1, &t->_array[i]);
             return 1;
         }
     }
@@ -400,7 +400,7 @@ static unsigned int numusearray(const Table* t, unsigned int* nums) {
         }
         /* count elements in range (2^(lg - 1), 2^lg] */
         for (; i <= lim; i++) {
-            if (!isempty(&t->array[i - 1]))
+            if (!isempty(&t->_array[i - 1]))
                 lc++;
         }
         nums[lg] += lc;
@@ -520,26 +520,26 @@ void luaH_resize(lua_State* L, Table* t, unsigned int newasize,
         exchangehashpart(t, &newt);  /* and new hash */
         /* re-insert into the new hash the elements from vanishing slice */
         for (i = newasize; i < oldasize; i++) {
-            if (!isempty(&t->array[i]))
-                luaH_setint(L, t, i + 1, &t->array[i]);
+            if (!isempty(&t->_array[i]))
+                luaH_setint(L, t, i + 1, &t->_array[i]);
             /*RC:YILIN*/
-            setnilvalue_subref(L, &t->array[i]);
+            setnilvalue_subref(L, &t->_array[i]);
         }
         t->alimit = oldasize;  /* restore current size... */
         exchangehashpart(t, &newt);  /* and hash (in case of errors) */
     }
     /* allocate new array */
-    newarray = luaM_reallocvector(L, t->array, oldasize, newasize, TValue);
+    newarray = luaM_reallocvector(L, t->_array, oldasize, newasize, TValue);
     if (unlikely(newarray == NULL && newasize > 0)) {  /* allocation failed? */
         freehash(L, &newt);  /* release new hash part */
         luaM_error(L);  /* raise error (with array unchanged) */
     }
     /* allocation ok; initialize new part of the array */
     exchangehashpart(t, &newt);  /* 't' has the new hash ('newt' has the old) */
-    t->array = newarray;  /* set new array part */
+    t->_array = newarray;  /* set new array part */
     t->alimit = newasize;
     for (i = oldasize; i < newasize; i++)  /* clear new slice of the array */
-        setempty(&t->array[i]);
+        setempty(&t->_array[i]);
     /* re-insert elements from old hash part into new parts */
     reinsert(L, &newt, t);  /* 'newt' now has the old hash */
     freehash(L, &newt);  /* free old hash part */
@@ -595,7 +595,7 @@ Table* luaH_new(lua_State* L, int fix) {
 
         t->metatable = NULL;
         t->flags = cast_byte(~0);
-        t->array = NULL;
+        t->_array = NULL;
         t->alimit = 0;
         setnodevector(L, t, 0);
     }
@@ -605,7 +605,7 @@ Table* luaH_new(lua_State* L, int fix) {
 
 void luaH_free(lua_State* L, Table* t) {
     freehash(L, t);
-    luaM_freearray(L, t->array, luaH_realasize(t));
+    luaM_freearray(L, t->_array, luaH_realasize(t));
     luaM_free(L, t);
 }
 
@@ -662,6 +662,7 @@ TValue* luaH_newkey(lua_State* L, Table* t, const TValue* key) {
                 othern += gnext(othern);
 
             gnext(othern) = cast_int(f - othern);  /* rechain to point to 'f' */
+            //free(f);
             *f = *mp;  /* copy colliding node into free pos. (mp->next also goes) */
             if (gnext(mp) != 0) {
                 gnext(f) += cast_int(mp - f);  /* correct 'next' */
@@ -675,6 +676,7 @@ TValue* luaH_newkey(lua_State* L, Table* t, const TValue* key) {
                 gnext(f) = cast_int((mp + gnext(mp)) - f);  /* chain new position */
             else lua_assert(gnext(f) == 0);
             gnext(mp) = cast_int(f - mp);
+            memset(f, 0,sizeof(*f));
             mp = f;
         }
     }
@@ -695,12 +697,12 @@ TValue* luaH_newkey(lua_State* L, Table* t, const TValue* key) {
  */
 const TValue* luaH_getint(Table* t, lua_Integer key) {
     if (l_castS2U(key) - 1u < t->alimit)  /* 'key' in [1, t->alimit]? */
-        return &t->array[key - 1];
+        return &t->_array[key - 1];
     else if (!limitequalsasize(t) &&  /* key still may be in the array part? */
         (l_castS2U(key) == t->alimit + 1 ||
             l_castS2U(key) - 1u < luaH_realasize(t))) {
         t->alimit = cast_uint(key);  /* probably '#t' is here now */
-        return &t->array[key - 1];
+        return &t->_array[key - 1];
     }
     else {
         Node* n = hashint(t, key);
@@ -729,7 +731,7 @@ const TValue* luaH_getshortstr(lua_State* L, Table* t, TString* key) {
             return gval(n);  /* that's it */
         else {
             int nx = gnext(n);
-            if (nx == 0)
+            if (nx <= 0)
                 return &absentkey;  /* not found */
             n += nx;
         }
@@ -879,9 +881,9 @@ static unsigned int binsearch(const TValue* array, unsigned int i,
  */
 lua_Unsigned luaH_getn(Table* t) {
     unsigned int limit = t->alimit;
-    if (limit > 0 && isempty(&t->array[limit - 1])) {  /* (1)? */
+    if (limit > 0 && isempty(&t->_array[limit - 1])) {  /* (1)? */
         /* there must be a boundary before 'limit' */
-        if (limit >= 2 && !isempty(&t->array[limit - 2])) {
+        if (limit >= 2 && !isempty(&t->_array[limit - 2])) {
             /* 'limit - 1' is a boundary; can it be a new limit? */
             if (ispow2realasize(t) && !ispow2(limit - 1)) {
                 t->alimit = limit - 1;
@@ -890,7 +892,7 @@ lua_Unsigned luaH_getn(Table* t) {
             return limit - 1;
         }
         else {  /* must search for a boundary in [0, limit] */
-            unsigned int boundary = binsearch(t->array, 0, limit);
+            unsigned int boundary = binsearch(t->_array, 0, limit);
             /* can this boundary represent the real size of the array? */
             if (ispow2realasize(t) && boundary > luaH_realasize(t) / 2) {
                 t->alimit = boundary;  /* use it as the new limit */
@@ -902,14 +904,14 @@ lua_Unsigned luaH_getn(Table* t) {
     /* 'limit' is zero or present in table */
     if (!limitequalsasize(t)) {  /* (2)? */
         /* 'limit' > 0 and array has more elements after 'limit' */
-        if (isempty(&t->array[limit]))  /* 'limit + 1' is empty? */
+        if (isempty(&t->_array[limit]))  /* 'limit + 1' is empty? */
             return limit;  /* this is the boundary */
         /* else, try last element in the array */
         limit = luaH_realasize(t);
-        if (isempty(&t->array[limit - 1])) {  /* empty? */
+        if (isempty(&t->_array[limit - 1])) {  /* empty? */
             /* there must be a boundary in the array after old limit,
              and it must be a valid new limit */
-            unsigned int boundary = binsearch(t->array, t->alimit, limit);
+            unsigned int boundary = binsearch(t->_array, t->alimit, limit);
             t->alimit = boundary;
             return boundary;
         }
@@ -917,7 +919,7 @@ lua_Unsigned luaH_getn(Table* t) {
     }
     /* (3) 'limit' is the last element and either is zero or present in table */
     lua_assert(limit == luaH_realasize(t) &&
-        (limit == 0 || !isempty(&t->array[limit - 1])));
+        (limit == 0 || !isempty(&t->_array[limit - 1])));
     if (isdummy(t) || isempty(luaH_getint(t, cast(lua_Integer, limit + 1))))
         return limit;  /* 'limit + 1' is absent */
     else  /* 'limit + 1' is also present */

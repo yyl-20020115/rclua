@@ -164,6 +164,9 @@ void* luaM_realloc_(lua_State* L, void* block, size_t osize, size_t nsize) {
     global_State* g = G(L);
     lua_assert((osize == 0) == (block == NULL));
     newblock = firsttry(g, block, osize, nsize);
+    if (osize == 0 && nsize>0) {
+        memset(newblock, 0, nsize);
+    }
     if (unlikely(newblock == NULL && nsize > 0)) {
         if (nsize > osize)  /* not shrinking a block? */
             newblock = tryagain(L, block, osize, nsize);
@@ -196,6 +199,7 @@ void* luaM_malloc_(lua_State* L, size_t size, int tag) {
             if (newblock == NULL)
                 luaM_error(L);
         }
+        memset(newblock, 0, size);
         g->GCdebt += size;
         return newblock;
     }

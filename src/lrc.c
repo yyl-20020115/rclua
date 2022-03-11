@@ -20,9 +20,17 @@ int luaRC_set_compare(const void* a, const void* b)
 {
     return (int)((*(char**)a) - (*(char**)b));
 }
+void luaRC_destroy(void* ptr)
+{
+    if (ptr != 0) {
+        free(ptr);
+    }
+}
+
 struct cstl_set* luaRC_ensure_objects()
 {
-    return objects = (objects != 0) ? objects : cstl_set_new(luaRC_set_compare, 0);
+    return objects = ((objects != 0) ? objects 
+        : cstl_set_new(luaRC_set_compare, 0));
 }
 l_mem luaRC_subref_object_internal(lua_State* L, GCObject* o)
 {
@@ -87,13 +95,16 @@ int luaRC_process_unlink_table(lua_State* L, Table* t, struct cstl_array* dup_ar
 
         int array_size = luaH_realasize(t);
         for (int i = 0; i < array_size; i++) {
-            TValue* tv = t->array + i;
+            TValue* tv = t->_array + i;
             if (is_collectable(tv->tt_)) {
                 tv->tt_ = LUA_TNIL;
                 luaC_process_unlink_gc(L, tv->value_.gc, dup_array, collecting);
             }
         }
-
+        if (t->_array != 0) {
+            free(t->_array);
+            t->_array = 0;
+        }
         if (t->metatable != 0) {
             luaC_process_unlink_gc(L, (GCObject*)t->metatable, dup_array, collecting);
         }
@@ -310,14 +321,14 @@ const char* luaRC_get_type_name(lu_byte tt) {
     }
 }
 
-int luaRC_collect(lua_State* L, struct cstl_set* collecting)
+int luaRC_collect(lua_State* L, struct cstl_set* collecting, int force)
 {
     if (collecting != 0) {
         struct cstl_iterator* i = cstl_set_new_iterator(collecting);
         if (i != 0) {
             while (i->next(i) != 0) {
                 GCObject* o = *(GCObject**)(i->current_key(i));
-                if (o != 0) {
+                if (o != 0 && (force || o->count>=0)) {
                     //remove from objects first
                     cstl_set_remove(luaRC_ensure_objects(), &o);
 #ifdef _DEBUG
@@ -364,12 +375,13 @@ l_mem luaRC_subref_object(lua_State* L, GCObject* o)
     l_mem c = 0;
     if (!enable_gc && o != 0 && ((c = luaRC_subref_object_internal(L, o)) == 0))
     {
-        struct cstl_set* collecting = cstl_set_new(luaRC_set_compare, 0);
+        struct cstl_set* collecting 
+            = cstl_set_new(luaRC_set_compare, 0);
         if (collecting != 0)
         {
             luaRC_process_unlink(L, o, collecting);
             //collect everything that has reference count of 0
-            luaRC_collect(L, collecting);
+            luaRC_collect(L, collecting,0);
             cstl_set_delete(collecting);
         }
     }
@@ -409,9 +421,10 @@ void luaRC_clears(lua_State* L)
         }
     }
 }
-void luaRC_deinit(void)
+void luaRC_deinit(lua_State* L)
 {
     if (objects != 0) {
+        //luaRC_collect(L, objects, 1);
         cstl_set_delete(objects);
         objects = 0;
     }

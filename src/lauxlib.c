@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include "lobject.h"
 
  /*
   ** This file uses only the official API of Lua.
@@ -982,7 +982,6 @@ LUALIB_API const char* luaL_gsub(lua_State* L, const char* s,
     return lua_tostring(L, -1);
 }
 
-
 static void* l_alloc(void* ud, void* ptr, size_t osize, size_t nsize) {
     (void)ud; (void)osize;  /* not used */
     if (nsize == 0) {
@@ -991,7 +990,8 @@ static void* l_alloc(void* ud, void* ptr, size_t osize, size_t nsize) {
     }
     else
     {
-        return realloc(ptr, nsize);
+        ptr = realloc(ptr, nsize);
+        return ptr;
     }
 }
 

@@ -627,6 +627,7 @@ int main(int argc, char** argv)
 #ifdef _WIN32
 #ifdef _DEBUG
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    _CrtSetBreakAlloc(652);
 #endif
 #endif
     int status = 0, result = 0;
@@ -644,7 +645,7 @@ int main(int argc, char** argv)
     report(L, status);
     lua_close(L);
 
-    luaRC_deinit();
+    luaRC_deinit(L);
 
     return (result && status == LUA_OK) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
