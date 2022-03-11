@@ -711,7 +711,10 @@ const TValue* luaH_getint(Table* t, lua_Integer key) {
                 return gval(n);  /* that's it */
             else {
                 int nx = gnext(n);
-                if (nx == 0) break;
+                if (nx == 0)
+                {
+                    break;
+                }
                 n += nx;
             }
         }
