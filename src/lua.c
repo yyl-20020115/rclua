@@ -621,13 +621,16 @@ static int pmain(lua_State* L) {
     return 1;
 }
 
-
+void lua_exit(int _Code)
+{
+    exit(_Code);
+}
 int main(int argc, char** argv)
 {
 #ifdef _WIN32
 #ifdef _DEBUG
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-    _CrtSetBreakAlloc(657);
+    //_CrtSetBreakAlloc(657);
 #endif
 #endif
     int status = 0, result = 0;
@@ -647,6 +650,8 @@ int main(int argc, char** argv)
 
     luaRC_deinit(L);
 
-    return (result && status == LUA_OK) ? EXIT_SUCCESS : EXIT_FAILURE;
+    lua_exit((result && status == LUA_OK) ? EXIT_SUCCESS : EXIT_FAILURE);
+    
+    return 0;
 }
 

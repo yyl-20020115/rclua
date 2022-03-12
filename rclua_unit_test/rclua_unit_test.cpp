@@ -5,12 +5,17 @@
 #include <corecrt_io.h>
 #include <Windows.h>
 
+extern "C" void luaRC_deinit(lua_State * L);
+extern "C" int luaC_set_enable_gc(int enable);
+
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 TEST_CLASS(RCLuaUnitTest)
 {
 public:
 	int ProcessLuaFile(const std::string& file) {
+		luaC_set_enable_gc(0);
+
 		lua_State* L = luaL_newstate();
 		luaL_openlibs(L);
 		luaopen_base(L);
@@ -19,6 +24,9 @@ public:
 		int ret = luaL_dofile(L, file.c_str());
 
 		lua_close(L);
+
+		luaRC_deinit(L);
+
 		return ret;
 	}
 
@@ -64,7 +72,7 @@ public:
 	void TestSpecificsImpl()
 	{
 		ResetCurrentDirectory();
-		ProcessLuaFile("test\\specific\\all.lua");
+		ProcessLuaFile("test\\specific\\_test.lua");
 	}
 	
 	TEST_METHOD(TestSpecifics)

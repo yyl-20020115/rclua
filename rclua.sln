@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30517.126
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32228.430
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rclua", "rclua.vcxproj", "{EA49AB5F-0012-4F6A-B768-8C1AD5A17434}"
 EndProject
@@ -36,6 +36,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "original", "original", "{D5
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "specific", "specific", "{166B0769-5545-4D30-A154-E3480B1B5400}"
 	ProjectSection(SolutionItems) = preProject
+		_test.lua = _test.lua
 		test\specific\all.lua = test\specific\all.lua
 		test\specific\api.lua = test\specific\api.lua
 		test\specific\attrib.lua = test\specific\attrib.lua

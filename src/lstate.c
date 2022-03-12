@@ -395,7 +395,6 @@ LUA_API lua_State* lua_newstate(lua_Alloc f, void* ud) {
     LG* l = cast(LG*, (*f)(ud, NULL, LUA_TTHREAD, sizeof(LG)));
     if (l == NULL) return NULL;
     /*RC:YILIN:FIXED*/
-    memset(l, 0, sizeof(LG));
     L = &l->l.l;
     g = &l->g;
     L->tt = LUA_VTHREAD;

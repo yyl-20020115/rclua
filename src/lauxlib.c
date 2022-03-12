@@ -658,7 +658,7 @@ LUALIB_API int luaL_ref(lua_State* L, int t) {
     else  /* no free elements */
         ref = (int)lua_rawlen(L, t) + 1;  /* get a new reference */
     lua_rawseti(L, t, ref);
-    return ref;
+        return ref;
 }
 
 
@@ -991,6 +991,9 @@ static void* l_alloc(void* ud, void* ptr, size_t osize, size_t nsize) {
     else
     {
         ptr = realloc(ptr, nsize);
+        if (ptr != 0) {
+            memset(ptr, 'A', nsize);
+        }
         return ptr;
     }
 }

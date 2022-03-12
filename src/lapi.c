@@ -126,9 +126,9 @@ LUA_API void lua_xmove(lua_State* from, lua_State* to, int n) {
     from->top -= n;
     for (i = 0; i < n; i++) {
         /*RC:YILIN*/
-        setnilvalue_subref(to, s2v(to->top));
-        setobj_to_new_addref(to, s2v(to->top), s2v(from->top + i));
-        //setobjs2s(to, to->top, from->top + i);
+        //setnilvalue_subref(to, s2v(to->top));
+        //setobj_to_new_addref(to, s2v(to->top), s2v(from->top + i));
+        setobjs2s(to, to->top, from->top + i);
         to->top++;  /* stack already checked by previous 'api_check' */
     }
     lua_unlock(to);
@@ -1386,7 +1386,7 @@ LUA_API void* lua_newuserdatauv(lua_State* L, size_t size, int nuvalue) {
     api_check(L, 0 <= nuvalue && nuvalue < USHRT_MAX, "invalid value");
     u = luaS_newudata(L, size, nuvalue);
     /*RC:YILIN*/
-    setuvalue_subref(L, s2v(L->top), u);
+    setuvalue(L, s2v(L->top), u);
     api_incr_top(L);
     luaC_checkGC(L);
     lua_unlock(L);
