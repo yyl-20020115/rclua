@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <setjmp.h>
 #include "lobject.h"
 
  /*
@@ -1060,3 +1061,21 @@ LUALIB_API void luaL_checkversion_(lua_State* L, lua_Number ver, size_t sz) {
             (LUAI_UACNUMBER)ver, (LUAI_UACNUMBER)v);
 }
 
+
+void lua_exit(int _Code) {
+    exit(_Code);
+}
+void lua_longjmp_function(jmp_buf _Buf, int _Value) {
+#if defined(LUA_USE_POSIX)
+    _longjmp(_Buf, _Value);
+#else
+    longjmp(_Buf, _Value);
+#endif
+}
+int lua_setjmp_function(jmp_buf _Buf) {
+#if defined(LUA_USE_POSIX)
+    return _setjmp(_Buf);
+#else
+    return setjmp(_Buf);
+#endif
+}

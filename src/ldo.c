@@ -63,15 +63,15 @@ try { a } catch(...) { if ((c)->status == 0) (c)->status = -1; }
 #elif defined(LUA_USE_POSIX)				/* }{ */
 
    /* in POSIX, try _longjmp/_setjmp (more efficient) */
-#define LUAI_THROW(L,c)		_longjmp((c)->b, 1)
-#define LUAI_TRY(L,c,a)		if (_setjmp((c)->b) == 0) { a }
+#define LUAI_THROW(L,c)		lua_longjmp_function((c)->b, 1)
+#define LUAI_TRY(L,c,a)		if (lua_setjmp_function((c)->b) == 0) { a }
 #define luai_jmpbuf		jmp_buf
 
 #else							/* }{ */
 
    /* ISO C handling with long jumps */
-#define LUAI_THROW(L,c)		longjmp((c)->b, 1)
-#define LUAI_TRY(L,c,a)		if (setjmp((c)->b) == 0) { a }
+#define LUAI_THROW(L,c)		lua_longjmp_function((c)->b, 1)
+#define LUAI_TRY(L,c,a)		if (lua_setjmp_function((c)->b) == 0) { a }
 #define luai_jmpbuf		jmp_buf
 
 #endif							/* } */

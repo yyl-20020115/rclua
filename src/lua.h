@@ -11,7 +11,7 @@
 
 #include <stdarg.h>
 #include <stddef.h>
-
+#include <setjmp.h>
 
 #include "luaconf.h"
 
@@ -156,7 +156,8 @@ LUA_API lua_State * lua_newthread (lua_State *L);
 LUA_API int         lua_resetthread (lua_State *L);
 LUA_API void        lua_exit(int exitCode);
 LUA_API lua_CFunction (lua_atpanic) (lua_State *L, lua_CFunction panicf);
-
+LUA_API void        lua_longjmp_function(jmp_buf _Buf,int _Value);
+LUA_API int         lua_setjmp_function(jmp_buf _Buf);
 
 LUA_API lua_Number (lua_version) (lua_State *L);
 

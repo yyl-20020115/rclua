@@ -402,6 +402,7 @@ static int handle_luainit(lua_State* L) {
 
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <xkeycheck.h>
 #define lua_initreadline(L)	((void)L, rl_readline_name="lua")
 #define lua_readline(L,b,p)	((void)L, ((b)=readline(p)) != NULL)
 #define lua_saveline(L,line)	((void)L, add_history(line))
@@ -621,10 +622,7 @@ static int pmain(lua_State* L) {
     return 1;
 }
 
-void lua_exit(int _Code)
-{
-    exit(_Code);
-}
+
 int main(int argc, char** argv)
 {
 #ifdef _WIN32
