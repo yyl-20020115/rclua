@@ -833,6 +833,7 @@ static void auxsetstr(lua_State* L, const TValue* table, const char* k) {
     const TValue* slot = 0;
     TString* str = luaS_new(L, k);
     api_checknelems(L, 1);
+    //NOTICE: fix slot which is not a table
     if (luaV_fastget(L, table, str, slot, luaH_getstr)) {
         luaV_finishfastset(L, table, slot, s2v(L->top - 1));
         L->top--;  /* pop value */

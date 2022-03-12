@@ -992,7 +992,7 @@ static void* l_alloc(void* ud, void* ptr, size_t osize, size_t nsize) {
     {
         ptr = realloc(ptr, nsize);
         if (ptr != 0) {
-            memset(ptr, 'A', nsize);
+            memset(ptr, '\0', nsize);
         }
         return ptr;
     }

@@ -349,7 +349,7 @@ int luaRC_collect(lua_State* L, struct cstl_set* collecting, int force)
 #endif
                     freeobj(L, o);
 #ifdef _DEBUG
-                    printf("(collect) freeing object: %p, count=%d, type=%s: %s\n", o, (int)c, luaRC_get_type_name(tt), ts != 0 ? ts : "");
+                    //printf("(collect) freeing object: %p, count=%d, type=%s: %s\n", o, (int)c, luaRC_get_type_name(tt), ts != 0 ? ts : "");
                     if (ts != 0) free(ts);
 #endif
                 }
@@ -412,7 +412,7 @@ void luaRC_clears(lua_State* L)
 #endif
                     freeobj(L, o);
 #ifdef _DEBUG
-                    printf("(leakage) freeing object: %p, count=%d, type=%s: %s\n", o, (int)c, luaRC_get_type_name(tt), ts != 0 ? ts : "");
+                    //printf("(leakage) freeing object: %p, count=%d, type=%s: %s\n", o, (int)c, luaRC_get_type_name(tt), ts != 0 ? ts : "");
                     if (ts != 0) free(ts);
 #endif
                 }
