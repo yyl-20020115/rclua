@@ -65,6 +65,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		44AB7FB227DCE31A00EC2723 /* original */ = {isa = PBXFileReference; lastKnownFileType = folder; name = original; path = test/original; sourceTree = "<group>"; };
+		44AB7FB327DCE31A00EC2723 /* specific */ = {isa = PBXFileReference; lastKnownFileType = folder; name = specific; path = test/specific; sourceTree = "<group>"; };
 		FAF532422528F40E0026B648 /* rclua */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = rclua; sourceTree = BUILT_PRODUCTS_DIR; };
 		FAF532532528F6E00026B648 /* lua.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = lua.hpp; path = src/lua.hpp; sourceTree = SOURCE_ROOT; };
 		FAF532542528F6E00026B648 /* ltm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ltm.h; path = src/ltm.h; sourceTree = SOURCE_ROOT; };
@@ -165,6 +167,8 @@
 		FAF532392528F40E0026B648 = {
 			isa = PBXGroup;
 			children = (
+				44AB7FB227DCE31A00EC2723 /* original */,
+				44AB7FB327DCE31A00EC2723 /* specific */,
 				FAF532522528F6AF0026B648 /* Sources */,
 				FAF532432528F40E0026B648 /* Products */,
 			);
@@ -487,7 +491,7 @@
 		FAF5324A2528F40E0026B648 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = AMZX36YYM6;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -503,7 +507,7 @@
 		FAF5324B2528F40E0026B648 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = AMZX36YYM6;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -521,7 +525,7 @@
 				FAF532482528F40E0026B648 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		FAF532492528F40E0026B648 /* Build configuration list for PBXNativeTarget "rclua" */ = {
 			isa = XCConfigurationList;
@@ -530,7 +534,7 @@
 				FAF5324B2528F40E0026B648 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};

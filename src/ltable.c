@@ -676,7 +676,7 @@ TValue* luaH_newkey(lua_State* L, Table* t, const TValue* key) {
                 gnext(f) = cast_int((mp + gnext(mp)) - f);  /* chain new position */
             else lua_assert(gnext(f) == 0);
             gnext(mp) = cast_int(f - mp);
-            memset(f, 0,sizeof(*f));
+            //memset(f, 0,sizeof(*f));
             mp = f;
         }
     }

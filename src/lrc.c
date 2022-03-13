@@ -27,7 +27,7 @@ void luaRC_destroy(void* ptr)
     }
 }
 
-struct cstl_set* luaRC_ensure_objects()
+struct cstl_set* luaRC_ensure_objects(void)
 {
     return objects = ((objects != 0) ? objects 
         : cstl_set_new(luaRC_set_compare, 0));
@@ -76,7 +76,7 @@ int luaRC_process_unlink_udata(lua_State* L, Udata* u, struct cstl_array* dup_ar
     return mc;
 }
 extern unsigned int luaH_realasize(const Table* t);
-#define gnodelast(h)	gnode(h, cast_sizet(sizenode(h)))
+#define gnodelast(h) gnode(h, cast_sizet(sizenode(h)))
 int luaRC_process_unlink_table(lua_State* L, Table* t, struct cstl_array* dup_array, struct cstl_set* collecting) {
     int mc = 0;
     if (t != 0 && CSTL_ERROR_SUCCESS == cstl_set_insert(collecting, &t, sizeof(void*))) {
@@ -349,7 +349,7 @@ int luaRC_collect(lua_State* L, struct cstl_set* collecting, int force)
 #endif
                     freeobj(L, o);
 #ifdef _DEBUG
-                    //printf("(collect) freeing object: %p, count=%d, type=%s: %s\n", o, (int)c, luaRC_get_type_name(tt), ts != 0 ? ts : "");
+                    printf("(collect) freeing object: %p, count=%d, type=%s: %s\n", o, (int)c, luaRC_get_type_name(tt), ts != 0 ? ts : "");
                     if (ts != 0) free(ts);
 #endif
                 }
